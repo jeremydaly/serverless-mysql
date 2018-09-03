@@ -236,3 +236,4 @@ Contributions, ideas and bug reports are welcome and greatly appreciated. Please
 ## TODO
 - Add `changeUser` support
 - Add connection retries on failed queries
+- Add automated tests and coverage reports
