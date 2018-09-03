@@ -221,6 +221,13 @@ let results = await mysql.transaction()
 ## Reusing Persistent Connections
 If you're using AWS Lambda, be sure to set `context.callbackWaitsForEmptyEventLoop = false;` in your main handler. This will allow the freezing of connections and will prevent Lambda from hanging on open connections. See [here](https://www.jeremydaly.com/reuse-database-connections-aws-lambda/) for more information.
 
+## Tests
+I've run *a lot* of tests using this.
+
+[![Serverless MySQL test - 500 connections per second w/ 90 connections available](https://www.jeremydaly.com/wp-content/uploads/2018/09/serverless-mysql-test-500users-90-connections.png)]
+
+
+
 ## Contributions
 Contributions, ideas and bug reports are welcome and greatly appreciated. Please add [issues](https://github.com/jeremydaly/serverless-mysql/issues) for suggestions and bug reports or create a pull request.
 
