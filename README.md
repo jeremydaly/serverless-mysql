@@ -134,7 +134,7 @@ Below is a table containing all of the possible configuration options for `serve
 
 | Property | Type | Description | Default |
 | -------- | ---- | ----------- | ------- |
-| backoff | `String` or `Function` | Backoff algorithm to be used when retrying connections. Possible values are `full` and `decorrelated`, or you can also specify your own algorithm. See [Connection Backoff](#connectionbackoff) for more information.  | `full` |
+| backoff | `String` or `Function` | Backoff algorithm to be used when retrying connections. Possible values are `full` and `decorrelated`, or you can also specify your own algorithm. See [Connection Backoff](#connection-backoff) for more information.  | `full` |
 | base | `Integer` | Number of milliseconds added to random backoff values. | `2` |
 | cap | `Integer` | Maximum number of milliseconds between connection retries. | `100` |
 | config | `Object` | A `mysql` configuration object as defined [here](https://github.com/mysqljs/mysql#connection-options) | `{}` |
