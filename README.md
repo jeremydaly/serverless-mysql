@@ -222,11 +222,13 @@ let results = await mysql.transaction()
 If you're using AWS Lambda, be sure to set `context.callbackWaitsForEmptyEventLoop = false;` in your main handler. This will allow the freezing of connections and will prevent Lambda from hanging on open connections. See [here](https://www.jeremydaly.com/reuse-database-connections-aws-lambda/) for more information.
 
 ## Tests
-I've run *a lot* of tests using this.
+I've run *a lot* of tests using a number of different configurations. Ramp ups appear to work best, but once there are several warm containers, the response times are much better. Below is an example test I ran using AWS Lambda and Aurora Serverless. Aurora Serverless was configured with *2 ACUs* (and it didn't autoscale), so there were only **90 connections** available to the MySQL cluster. The Lambda function was configured with 1,024 MB of memory. This test simulated **500 users** per second for one minute. Each user ran a sample query retrieving a few rows from a table.
 
-[![Serverless MySQL test - 500 connections per second w/ 90 connections available](https://www.jeremydaly.com/wp-content/uploads/2018/09/serverless-mysql-test-500users-90-connections.png)]
+From the graph below you can see that the average response time was **41 ms** (min 20 ms, max 3743 ms) with **ZERO** errors.
 
+![Serverless MySQL test - 500 connections per second w/ 90 connections available](https://www.jeremydaly.com/wp-content/uploads/2018/09/serverless-mysql-test-500users-90-connections.png)
 
+Other tests that use larger configurations were extremely successful too, but I'd appreciate other independent tests to verify my assumptions.
 
 ## Contributions
 Contributions, ideas and bug reports are welcome and greatly appreciated. Please add [issues](https://github.com/jeremydaly/serverless-mysql/issues) for suggestions and bug reports or create a pull request.
