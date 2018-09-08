@@ -5,7 +5,7 @@
  * More detail regarding the MySQL module can be found here:
  * https://github.com/mysqljs/mysql
  * @author Jeremy Daly <jeremy@jeremydaly.com>
- * @version 1.0.0
+ * @version 1.1.0
  * @license MIT
  */
 
@@ -293,13 +293,19 @@ const transaction = () => {
   let rollback = () => {} // default rollback event
 
   return {
-    query: function(...args) { queries.push([...args]); return this },
+    query: function(...args) {
+      if (typeof args[0] === 'function') {
+        queries.push(args[0])
+      } else {
+        queries.push(() => [...args])
+      }
+      return this
+    },
     rollback: function(fn) {
       if (typeof fn === 'function') { rollback = fn }
       return this
     },
-    commit: async function() { return await commit(queries,rollback) },
-    queries
+    commit: async function() { return await commit(queries,rollback) }
   }
 }
 
@@ -314,7 +320,9 @@ const commit = async (queries,rollback) => {
   // Loop through queries
   for (let i in queries) {
     // Execute the queries, pass the rollback as context
-    results.push(await query.apply({rollback},queries[i]))
+    let result = await query.apply({rollback},queries[i](results[results.length-1],results))
+    // Add the result to the main results accumulator
+    results.push(result)
   }
 
   // Commit our transaction
