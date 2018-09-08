@@ -205,15 +205,24 @@ If you're not setting max `user_connections`, the user **MUST BE** granted the `
 The `mysql` module allows you to specify a "[timeout](https://github.com/mysqljs/mysql#timeouts)" with each query. Typically this will disconnect the connection and prevent you from running additional queries. `serverless-mysql` handles timeouts a bit more elegantly by throwing an error and `destroy()`ing the connection. This will reset the connection completely, allowing you to run additional queries **AFTER** you catch the error.
 
 ## Transaction Support
-Transaction support in `serverless-mysql` has been dramatically simplified. Start a new transaction using the `transaction()` method, and then chain queries using the `query()` method. The `query()` method supports all standard query options.
+Transaction support in `serverless-mysql` has been dramatically simplified. Start a new transaction using the `transaction()` method, and then chain queries using the `query()` method. The `query()` method supports all standard query options. Alternatively, you can specify a function as the only argument in a `query()` method call and return the arguments as an array of values. The function receives two arguments, the result of the last query executed and an array containing all the previous query results. This is useful if you need values from a previous query as part of your transaction.
 
 You can specify an optional `rollback()` method in the chain. This will receive the `error` object, allowing you to add additional logging or perform some other action. Call the `commit()` when you are ready to execute the queries.
 
 ```javascript
 let results = await mysql.transaction()
   .query('INSERT INTO table (x) VALUES(?)', [1])
-  .query('UPDATE table SET x = 1 ')
-  .query('SELECT * FROM table')
+  .query('UPDATE table SET x = 1')
+  .rollback(e => { /* do something with the error */ }) // optional
+  .commit() // execute the queries
+```
+
+With a function to get the insertId from the previous query:
+
+```javascript
+let results = await mysql.transaction()
+  .query('INSERT INTO table (x) VALUES(?)', [1])
+  .query((r) => ['UPDATE table SET x = 1 WHERE id = ?', r.insertId])
   .rollback(e => { /* do something with the error */ }) // optional
   .commit() // execute the queries
 ```
