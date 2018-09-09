@@ -23,7 +23,7 @@ const mysql = require('serverless-mysql')({
   }
 })
 
-// Man handler function
+// Main handler function
 exports.handler = async (event, context) {
   // Run your query
   let results = await mysql.query('SELECT * FROM table')
