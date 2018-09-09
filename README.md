@@ -56,7 +56,6 @@ npm i serverless-mysql
 ## How to use this module
 Serverless MySQL wraps the **[mysql](https://github.com/mysqljs/mysql)** module, so this module supports pretty much everything that the `mysql` module does. It uses all the same [connection options](https://github.com/mysqljs/mysql#connection-options), provides a `query()` method that accepts the same arguments when [performing queries](https://github.com/mysqljs/mysql#performing-queries) (except the callback), and passes back the query results exactly as the `mysql` module returns them. There are a few things that don't make sense in serverless environments, like streaming rows, so there is no support for that yet.
 
-### Including the serverless-mysql
 To use Serverless MySQL, require it **OUTSIDE** your main function handler. This will allow for connection reuse between executions. The module must be initialized before its methods are available. [Configuration options](#configuration-options) must be passed in during initialization.
 
 ```javascript
