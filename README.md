@@ -153,7 +153,7 @@ Below is a table containing all of the possible configuration options for `serve
 | zombieMinTimeout | `Integer` | The minimum number of *seconds* that a connection must be idle before the module will recycle it. | `3` |
 
 ### Connection Backoff
-If `manageConns` is not set to `false`, then this module will automatically kill idle connections or disconnect the current connection if the `connUtilization` limit is reached. Even with this aggressive strategy, it is possible that multiple functions will be competing for available connections. The `backoff` setting uses the strategy outlined [here](https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/) to use *Jitter* instead of *Exponential Backoff* when attempting connections retries.
+If `manageConns` is not set to `false`, then this module will automatically kill idle connections or disconnect the current connection if the `connUtilization` limit is reached. Even with this aggressive strategy, it is possible that multiple functions will be competing for available connections. The `backoff` setting uses the strategy outlined [here](https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/) to use *Jitter* instead of *Exponential Backoff* when attempting connection retries.
 
 The two supported methods are `full` and `decorrelated` Jitter. Both are effective in reducing server strain and minimize retries. The module defaults to `full`.
 
@@ -171,7 +171,7 @@ In addition to the two built-in algorithms, you can also provide your own by set
 
 ```javascript
 backoff: (wait,retries) => {
-  console.log('CUSTOM BACKOFF',wait,retries);
+  console.log('CUSTOM BACKOFF',wait,retries)
   return 20 // return integer
 }
 ```
@@ -206,7 +206,7 @@ The `mysql` module allows you to specify a "[timeout](https://github.com/mysqljs
 ## Transaction Support
 Transaction support in `serverless-mysql` has been dramatically simplified. Start a new transaction using the `transaction()` method, and then chain queries using the `query()` method. The `query()` method supports all standard query options. Alternatively, you can specify a function as the only argument in a `query()` method call and return the arguments as an array of values. The function receives two arguments, the result of the last query executed and an array containing all the previous query results. This is useful if you need values from a previous query as part of your transaction.
 
-You can specify an optional `rollback()` method in the chain. This will receive the `error` object, allowing you to add additional logging or perform some other action. Call the `commit()` when you are ready to execute the queries.
+You can specify an optional `rollback()` method in the chain. This will receive the `error` object, allowing you to add additional logging or perform some other action. Call the `commit()` method when you are ready to execute the queries.
 
 ```javascript
 let results = await mysql.transaction()
@@ -216,7 +216,7 @@ let results = await mysql.transaction()
   .commit() // execute the queries
 ```
 
-With a function to get the insertId from the previous query:
+With a function to get the `insertId` from the previous query:
 
 ```javascript
 let results = await mysql.transaction()
