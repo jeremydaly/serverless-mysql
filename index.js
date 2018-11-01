@@ -196,7 +196,7 @@ const query = async function(...args) {
             resetClient() // reset the client
           }
 
-          return reject(err)
+          reject(err)
         }
         
         return resolve(results)
