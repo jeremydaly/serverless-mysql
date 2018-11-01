@@ -189,7 +189,7 @@ const query = async function(...args) {
             this.rollback(err)
           }
 
-          if (err.code === 'PROTOCOL_SEQUENCE_TIMEOUT') {
+          if (err.code === 'PROTOCOL_SEQUENCE_TIMEOUT' || tooManyConnsErrors.includes(err.code)) {
             client.destroy() // destroy connection on timeout
             resetClient() // reset the client
           }
