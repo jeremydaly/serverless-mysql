@@ -189,6 +189,7 @@ const query = async function(...args) {
           reject(err) // reject the promise with the error
         } else if (err) {
           console.log('this: ', this);
+          console.log('client: ', client);
           console.log('ERROR: ', JSON.stringify(err));
           if (this.rollback) {
             await query('ROLLBACK')
