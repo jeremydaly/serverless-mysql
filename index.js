@@ -185,16 +185,16 @@ const query = async function(...args) {
   return new Promise((resolve,reject) => {
     if (client !== null) {
       client.query(...args, async (err, results) => {
-        if (err && (err.code === 'PROTOCOL_SEQUENCE_TIMEOUT' || err.code === 'PROTOCOL_CONNECTION_LOST')) {
+        if (err && err.code === 'PROTOCOL_SEQUENCE_TIMEOUT') {
           client.destroy() // destroy connection on timeout
           resetClient() // reset the client
           reject(err) // reject the promise with the error
         } else if (err) {
-          if (this && this.rollback) {
+          if (this.rollback) {
             await query('ROLLBACK')
             this.rollback(err)
           }
-          return reject(err)
+          reject(err)
         }
         return resolve(results)
       })
