@@ -191,7 +191,7 @@ const query = async function(...args) {
           console.log('this: ', this);
           console.log('client: ', client);
           console.log('ERROR: ', JSON.stringify(err));
-          if (this.rollback) {
+          if (this && this.rollback) {
             await query('ROLLBACK')
             this.rollback(err)
           }
