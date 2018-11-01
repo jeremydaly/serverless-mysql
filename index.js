@@ -173,6 +173,8 @@ const quit = () => {
 /**  QUERY FUNCTIONS                                               **/
 /********************************************************************/
 
+const query
+
 // Main query function
 const query = async function(...args) {
 
@@ -192,7 +194,7 @@ const query = async function(...args) {
             await query('ROLLBACK')
             this.rollback(err)
           }
-          reject(err)
+          return reject(err)
         }
         return resolve(results)
       })
