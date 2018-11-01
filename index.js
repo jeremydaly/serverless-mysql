@@ -193,10 +193,8 @@ const query = async function(...args) {
             client.destroy() // destroy connection on timeout
             resetClient() // reset the client
           }
-
-          reject(err)
+          return reject(err)
         }
-        
         return resolve(results)
       })
     }
