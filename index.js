@@ -182,7 +182,7 @@ const query = async function(...args) {
   // Run the query
   return new Promise((resolve,reject) => {
     if (client !== null) {
-      client.query(...args, async (err, results) => {
+      await client.query(...args, async (err, results) => {
         if (err) {
           if (this && this.rollback) {
             await query('ROLLBACK')
