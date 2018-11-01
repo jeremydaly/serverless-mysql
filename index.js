@@ -173,8 +173,6 @@ const quit = () => {
 /**  QUERY FUNCTIONS                                               **/
 /********************************************************************/
 
-const query
-
 // Main query function
 const query = async function(...args) {
 
