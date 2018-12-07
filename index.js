@@ -187,8 +187,11 @@ const query = async function(...args) {
           client.destroy() // destroy connection on timeout
           resetClient() // reset the client
           reject(err) // reject the promise with the error
+        } else if (err && /^PROTOCOL_ENQUEUE_AFTER_/.test(err.code)) {
+          resetClient() // reset the client
+          return resolve(query(...args)) // attempt the query again
         } else if (err) {
-          if (this.rollback) {
+          if (this && this.rollback) {
             await query('ROLLBACK')
             this.rollback(err)
           }

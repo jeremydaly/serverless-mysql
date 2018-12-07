@@ -1,5 +1,8 @@
 # Serverless MySQL
 
+[![npm](https://img.shields.io/npm/v/serverless-mysql.svg)](https://www.npmjs.com/package/serverless-mysql)
+[![npm](https://img.shields.io/npm/l/serverless-mysql.svg)](https://www.npmjs.com/package/serverless-mysql)
+
 ### A module for managing MySQL connections at *serverless* scale.
 
 Serverless MySQL is a wrapper for Doug Wilson's amazing **[mysql](https://github.com/mysqljs/mysql)** Node.js module. Normally, using the `mysql` module with Node apps would be just fine. However, serverless functions (like AWS Lambda, Google Cloud Functions, and Azure Functions) scale almost infinitely by creating separate instances for each concurrent user. This is a **MAJOR PROBLEM** for RDBS solutions like MySQL, because available connections can be quickly maxed out by competing functions. Not anymore. 😀
