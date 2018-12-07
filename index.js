@@ -188,12 +188,10 @@ const query = async function(...args) {
           resetClient() // reset the client
           reject(err) // reject the promise with the error
         } else if (err && /^PROTOCOL_ENQUEUE_AFTER_/.test(err.code)) {
-
           resetClient() // reset the client
           return resolve(query(...args)) // attempt the query again
-          //reject(err) // reject the promise with the error
         } else if (err) {
-          if (this.rollback) {
+          if (this && this.rollback) {
             await query('ROLLBACK')
             this.rollback(err)
           }
