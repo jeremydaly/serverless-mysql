@@ -9,7 +9,7 @@
  * @license MIT
  */
 
-const MYSQL = require('mysql2/promise') // MySQL
+const MYSQL = require('mysql2') // MySQL
 
 // Mutable values
 let client = null // Init null client object
@@ -182,7 +182,7 @@ const query = async function(...args) {
   // Run the query
   return new Promise((resolve,reject) => {
     if (client !== null) {
-      client.query(...args, async (err, results) => {
+      client.promise().query(...args, async (err, results) => {
         if (err && err.code === 'PROTOCOL_SEQUENCE_TIMEOUT') {
           client.destroy() // destroy connection on timeout
           resetClient() // reset the client
