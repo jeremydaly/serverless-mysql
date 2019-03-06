@@ -29,7 +29,7 @@
   },
   "homepage": "https://github.com/jeremydaly/serverless-mysql#readme",
   "dependencies": {
-    "mysql": "^2.16.0"
+    "mysql2": "*"
   },
   "devDependencies": {
     "chai": "^4.2.0",
