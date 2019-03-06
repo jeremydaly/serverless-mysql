@@ -9,7 +9,7 @@
  * @license MIT
  */
 
-const MYSQL = require('mysql2') // MySQL
+const MYSQL = require('mysql2/promise') // MySQL
 
 // Mutable values
 let client = null // Init null client object
@@ -88,22 +88,18 @@ const _connect = () => {
     resetCounter() // Reset the total use counter
 
     // Return a new promise
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
 
-      // Connect to the MySQL database
-      client = MYSQL.createConnection(_cfg)
-
-      // Wait until MySQL is connected and ready before moving on
-      client.connect(function(err) {
-        if (err) {
-          resetClient()
-          reject(err)
-        } else {
-          resetRetries()
-          onConnect(client)
-          return resolve(true)
-        }
-      })
+      try {
+        // Connect to the MySQL database
+        client = await MYSQL.createConnection(_cfg);
+        resetRetries();
+        onConnect(client);
+        return resolve(true)
+      } catch(e) {
+        resetClient();
+        reject(e);
+      }
 
       // Add error listener (reset client on failures)
       client.on('error', async err => {
@@ -147,21 +143,21 @@ const end = async () => {
 
       // If no zombies were cleaned up, close this connection
       if (killedZombies === 0) {
-        quit()
+        await quit();
       }
 
     // If zombies exist that are more than the max timeout, kill them
     } else if (usedConns.maxAge > zombieMaxTimeout) {
-      await killZombieConnections(zombieMaxTimeout)
+      await killZombieConnections(zombieMaxTimeout);
     }
   } // end if client
 } // end end() method
 
 
 // Function that explicitly closes the MySQL connection.
-const quit = () => {
+const quit = async () => {
   if (client !== null) {
-    client.end() // Quit the connection.
+    await client.end() // Quit the connection.
     resetClient() // reset the client to null
     resetCounter() // reset the reuse counter
     onClose() // fire onClose event
@@ -180,9 +176,12 @@ const query = async function(...args) {
   await connect()
 
   // Run the query
-  return new Promise((resolve,reject) => {
+  return new Promise(async (resolve,reject) => {
     if (client !== null) {
-      client.promise().query(...args, async (err, results) => {
+      try {
+        var results = await client.query(...args);
+        resolve(results);
+      } catch(err) {
         if (err && err.code === 'PROTOCOL_SEQUENCE_TIMEOUT') {
           client.destroy() // destroy connection on timeout
           resetClient() // reset the client
@@ -190,15 +189,14 @@ const query = async function(...args) {
         } else if (err && /^PROTOCOL_ENQUEUE_AFTER_/.test(err.code)) {
           resetClient() // reset the client
           return resolve(query(...args)) // attempt the query again
-        } else if (err) {
+        } else {
           if (this && this.rollback) {
             await query('ROLLBACK')
             this.rollback(err)
           }
           reject(err)
         }
-        return resolve(results)
-      })
+      }
     }
   })
 
@@ -323,11 +321,12 @@ const commit = async (queries,rollback) => {
   // Loop through queries
   for (let i in queries) {
     // Execute the queries, pass the rollback as context
-    let result = await query.apply({rollback},queries[i](results[results.length-1],results))
+    let result = query.apply({rollback},queries[i](results[results.length-1],results))
     // Add the result to the main results accumulator
     results.push(result)
   }
 
+  await Promise.all(results);
   // Commit our transaction
   await query('COMMIT')
 
