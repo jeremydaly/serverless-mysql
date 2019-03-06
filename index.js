@@ -9,7 +9,7 @@
  * @license MIT
  */
 
-const MYSQL = require('mysql2') // MySQL
+const MYSQL = require('mysql2/promise') // MySQL
 
 // Mutable values
 let client = null // Init null client object
