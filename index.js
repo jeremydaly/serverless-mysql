@@ -321,7 +321,7 @@ const commit = async (queries,rollback) => {
   await query('START TRANSACTION')
 
   // Loop through queries
-  for (let i in queries) {
+  for (let i = 0; i < queries.length; i++) {
     // Execute the queries, pass the rollback as context
     let result = await query.apply({rollback},queries[i](results[results.length-1],results))
     // Add the result to the main results accumulator
