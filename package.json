@@ -3,6 +3,7 @@
   "version": "1.2.1",
   "description": "A module for managing MySQL connections at serverless scale.",
   "main": "index.js",
+  "types": "index.d.ts",
   "scripts": {
     "test": "mocha --check-leaks --recursive",
     "test-cov": "nyc --reporter=html mocha --check-leaks --recursive",
@@ -40,5 +41,8 @@
     "nyc": "^13.3.0",
     "rewire": "^4.0.1",
     "sinon": "^6.3.5"
+  },
+  "optionalDependencies": {
+    "@types/mysql": "^2.15.6"
   }
 }
