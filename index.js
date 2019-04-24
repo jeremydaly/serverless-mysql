@@ -28,7 +28,8 @@ const tooManyConnsErrors = [
   'ER_USER_LIMIT_REACHED',
   'ER_OUT_OF_RESOURCES',
   'ER_CON_COUNT_ERROR',
-  'PROTOCOL_CONNECTION_LOST' // if the connection is lost
+  'PROTOCOL_CONNECTION_LOST', // if the connection is lost
+  'ETIMEDOUT' // if the connection times out
 ]
 
 // Init setting values
