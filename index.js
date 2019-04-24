@@ -270,7 +270,7 @@ const killZombieConnections = async (timeout) => {
     [!isNaN(timeout) ? timeout : 60*15, _cfg.user])
 
   // Kill zombies
-  for (let i in zombies) {
+  for (let i = 0; i < zombies.length; i++) {
     try {
       await query('KILL ?',zombies[i].ID)
       onKill(zombies[i]) // fire onKill event
