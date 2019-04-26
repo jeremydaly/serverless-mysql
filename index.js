@@ -9,8 +9,6 @@
  * @license MIT
  */
 
-const MYSQL = require('mysql') // MySQL
-
 // Mutable values
 let client = null // Init null client object
 let counter = 0 // Total reuses counter
@@ -33,9 +31,9 @@ const tooManyConnsErrors = [
 ]
 
 // Init setting values
-let manageConns, cap, base, maxRetries, connUtilization, backoff,
+let MYSQL, manageConns, cap, base, maxRetries, connUtilization, backoff,
   zombieMinTimeout, zombieMaxTimeout, maxConnsFreq, usedConnsFreq,
-  onConnect, onConnectError, onRetry, onClose, onError, onKill, onKillError
+  onConnect, onConnectError, onRetry, onClose, onError, onKill, onKillError, PromiseLibrary
 
 /********************************************************************/
 /**  HELPER/CONVENIENCE FUNCTIONS                                  **/
@@ -50,7 +48,7 @@ const resetRetries = () => retries = 0
 const getErrorCount = () => errors
 const getConfig = () => _cfg
 const config = (args) => Object.assign(_cfg,args)
-const delay = ms => new Promise(res => setTimeout(res, ms))
+const delay = ms => new PromiseLibrary(res => setTimeout(res, ms))
 const randRange = (min,max) => Math.floor(Math.random() * (max - min + 1)) + min
 const fullJitter = () => randRange(0, Math.min(cap, base * 2 ** retries))
 const decorrelatedJitter = (sleep=0) => Math.min(cap, randRange(base, sleep * 3))
@@ -89,7 +87,7 @@ const _connect = () => {
     resetCounter() // Reset the total use counter
 
     // Return a new promise
-    return new Promise((resolve, reject) => {
+    return new PromiseLibrary((resolve, reject) => {
 
       // Connect to the MySQL database
       client = MYSQL.createConnection(_cfg)
@@ -117,7 +115,7 @@ const _connect = () => {
 
   // Else the client already exists
   } else {
-    return Promise.resolve()
+    return PromiseLibrary.resolve()
   } // end if-else
 
 } // end _connect
@@ -181,7 +179,7 @@ const query = async function(...args) {
   await connect()
 
   // Run the query
-  return new Promise((resolve,reject) => {
+  return new PromiseLibrary((resolve,reject) => {
     if (client !== null) {
       client.query(...args, async (err, results) => {
         if (err && err.code === 'PROTOCOL_SEQUENCE_TIMEOUT') {
@@ -345,7 +343,8 @@ const commit = async (queries,rollback) => {
 // Export the initialization function and return methods
 module.exports = (cfg) => {
 
-  cfg = typeof cfg === 'object' && !Array.isArray(cfg) ? cfg : {}
+  MYSQL = cfg.library || require('mysql')
+  PromiseLibrary = cfg.promise || Promise
 
   // Set defaults for connection management
   manageConns = cfg.manageConns === false ? false : true // default to true
@@ -369,7 +368,6 @@ module.exports = (cfg) => {
   onError = typeof cfg.onError === 'function' ? cfg.onError : () => {}
   onKill = typeof cfg.onKill === 'function' ? cfg.onKill : () => {}
   onKillError = typeof cfg.onKillError === 'function' ? cfg.onKillError : () => {}
-
 
   let connCfg = typeof cfg.config === 'object' && !Array.isArray(cfg.config) ? cfg.config : {}
 

@@ -136,6 +136,8 @@ Below is a table containing all of the possible configuration options for `serve
 
 | Property | Type | Description | Default |
 | -------- | ---- | ----------- | ------- |
+| library | `Function` | Custom mysql library | `require('mysql')` |
+| promise | `Function` | Custom promise library | `Promise` |
 | backoff | `String` or `Function` | Backoff algorithm to be used when retrying connections. Possible values are `full` and `decorrelated`, or you can also specify your own algorithm. See [Connection Backoff](#connection-backoff) for more information.  | `full` |
 | base | `Integer` | Number of milliseconds added to random backoff values. | `2` |
 | cap | `Integer` | Maximum number of milliseconds between connection retries. | `100` |
@@ -177,6 +179,18 @@ backoff: (wait,retries) => {
   console.log('CUSTOM BACKOFF',wait,retries)
   return 20 // return integer
 }
+```
+
+## Custom libraries
+
+Set your own promise library
+```javascript
+promise: require('bluebird')
+```
+
+Set your own mysql library, wrapped with AWS x-ray for instance
+```javascript
+library: require('aws-sdk-xray-node')(require('mysql'));
 ```
 
 ## Events
