@@ -28,7 +28,8 @@ const tooManyConnsErrors = [
   'ER_USER_LIMIT_REACHED',
   'ER_OUT_OF_RESOURCES',
   'ER_CON_COUNT_ERROR',
-  'PROTOCOL_CONNECTION_LOST' // if the connection is lost
+  'PROTOCOL_CONNECTION_LOST', // if the connection is lost
+  'ETIMEDOUT' // if the connection times out
 ]
 
 // Init setting values
@@ -269,7 +270,7 @@ const killZombieConnections = async (timeout) => {
     [!isNaN(timeout) ? timeout : 60*15, _cfg.user])
 
   // Kill zombies
-  for (let i in zombies) {
+  for (let i = 0; i < zombies.length; i++) {
     try {
       await query('KILL ?',zombies[i].ID)
       onKill(zombies[i]) // fire onKill event
@@ -321,7 +322,7 @@ const commit = async (queries,rollback) => {
   await query('START TRANSACTION')
 
   // Loop through queries
-  for (let i in queries) {
+  for (let i = 0; i < queries.length; i++) {
     // Execute the queries, pass the rollback as context
     let result = await query.apply({rollback},queries[i](results[results.length-1],results))
     // Add the result to the main results accumulator
