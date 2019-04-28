@@ -76,7 +76,7 @@ type Config = {
    */
   zombieMinTimeout?: number
 }
-type ServerlessMysql = {
+export type ServerlessMysql = {
   connect(wait?: number): Promise<void>
   config(config?: MySQL.ConnectionConfig): MySQL.ConnectionConfig
   query<T>(...args): Promise<T>
