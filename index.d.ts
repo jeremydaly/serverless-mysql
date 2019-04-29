@@ -76,13 +76,13 @@ type Config = {
    */
   zombieMinTimeout?: number
 }
-type ServerlessMysql = {
+export type ServerlessMysql = {
   connect(wait?: number): Promise<void>
   config(config?: MySQL.ConnectionConfig): MySQL.ConnectionConfig
   query<T>(...args): Promise<T>
   end(): Promise<void>
   quit(): void
-  transaction: Transaction
+  transaction(): Transaction
   getCounter(): number
   getClient(): MySQL.Connection
   getConfig(): MySQL.ConnectionConfig
@@ -92,8 +92,8 @@ type ServerlessMysql = {
 declare class Transaction {
   query(...args): this
   rollback(fn: Function): this
-  commit(): Promise<any>
+  commit<T = any>(): Promise<T[]>
 }
 declare const serverlessMysql: (cfg?: Config) => ServerlessMysql
 
-export = serverlessMysql
+export default serverlessMysql
