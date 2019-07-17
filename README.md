@@ -243,6 +243,24 @@ let results = await mysql.transaction()
   .commit() // execute the queries
 ```
 
+You can also return a `null` or empty response from `.query()` calls within a transaction. This lets you perform conditional transactions like this:
+
+```javascript
+let results = await mysql.transaction()
+  .query('DELETE FROM table WHERE id = ?', [someVar])
+  .query((r) => {
+    if (r.affectedRows > 0) {
+      ['UPDATE anotherTable SET x = 1 WHERE id = ?', [someVar]]
+    } else {
+      return null
+    }
+  })
+  .rollback(e => { /* do something with the error */ }) // optional
+  .commit() // execute the queries
+```
+
+If the record to `DELETE` doesn't exist, the `UPDATE` will not be performed. If the `UPDATE` fails, the `DELETE` will be rolled back.
+
 **NOTE:** Transaction support is designed for InnoDB tables (default). Other table types may not behave as expected.
 
 ## Reusing Persistent Connections
