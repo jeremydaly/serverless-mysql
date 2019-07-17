@@ -243,6 +243,8 @@ let results = await mysql.transaction()
   .commit() // execute the queries
 ```
 
+**NOTE:** Transaction support is designed for InnoDB tables (default). Other table types may not behave as expected.
+
 ## Reusing Persistent Connections
 If you're using AWS Lambda, be sure to set `context.callbackWaitsForEmptyEventLoop = false;` in your main handler. This will allow the freezing of connections and will prevent Lambda from hanging on open connections. See [here](https://www.jeremydaly.com/reuse-database-connections-aws-lambda/) for more information.
 
