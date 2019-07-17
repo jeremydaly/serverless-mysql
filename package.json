@@ -44,5 +44,11 @@
   },
   "optionalDependencies": {
     "@types/mysql": "^2.15.6"
-  }
+  },
+  "files": [
+    "LICENSE",
+    "README.md",
+    "index.js",
+    "index.d.ts"
+  ]
 }
