@@ -183,6 +183,8 @@ module.exports = (params) => {
     // Run the query
     return new PromiseLibrary((resolve,reject) => {
       if (client !== null) {
+        // If no args are passed in a transaction, ignore query
+        if (this && this.rollback && args.length === 0) { return resolve([]) }
         client.query(...args, async (err, results) => {
           if (err && err.code === 'PROTOCOL_SEQUENCE_TIMEOUT') {
             client.destroy() // destroy connection on timeout
