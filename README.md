@@ -252,7 +252,7 @@ let results = await mysql.transaction()
   .query('DELETE FROM table WHERE id = ?', [someVar])
   .query((r) => {
     if (r.affectedRows > 0) {
-      ['UPDATE anotherTable SET x = 1 WHERE id = ?', [someVar]]
+      return ['UPDATE anotherTable SET x = 1 WHERE id = ?', [someVar]]
     } else {
       return null
     }
