@@ -124,6 +124,8 @@ mysql.quit()
 If you need access to the `connection` object, you can use the `getClient()` method. This will allow you to use any supported feature of the `mysql` module directly.
 
 ```javascript
+// Connect to your MySQL instance first
+await mysql.connect()
 // Get the connection object
 let connection = mysql.getClient()
 
