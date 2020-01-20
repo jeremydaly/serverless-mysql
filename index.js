@@ -373,9 +373,10 @@ module.exports = (params) => {
   onKillError = typeof cfg.onKillError === 'function' ? cfg.onKillError : () => {}
 
   let connCfg = typeof cfg.config === 'object' && !Array.isArray(cfg.config) ? cfg.config : {}
-
+  let escape = MYSQL.escape
   // Set MySQL configs
   config(connCfg)
+
 
   // Return public methods
   return {
@@ -383,6 +384,7 @@ module.exports = (params) => {
     config,
     query,
     end,
+    escape,
     quit,
     transaction,
     getCounter,
