@@ -268,7 +268,7 @@ module.exports = (params) => {
     // Hunt for zombies (just the sleeping ones that this user owns)
     let zombies = await query(
       `SELECT ID,time FROM information_schema.processlist
-        WHERE command = "Sleep" AND time >= ? AND user = ?
+        WHERE command = 'Sleep' AND time >= ? AND user = ?
         ORDER BY time DESC`,
       [!isNaN(timeout) ? timeout : 60*15, _cfg.user])
 
