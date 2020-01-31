@@ -5,7 +5,7 @@
  * More detail regarding the MySQL module can be found here:
  * https://github.com/mysqljs/mysql
  * @author Jeremy Daly <jeremy@jeremydaly.com>
- * @version 1.5.0
+ * @version 1.5.3
  * @license MIT
  */
 
