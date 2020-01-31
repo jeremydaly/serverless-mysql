@@ -191,7 +191,7 @@ module.exports = (params) => {
             client.destroy() // destroy connection on timeout
             resetClient() // reset the client
             reject(err) // reject the promise with the error
-          } else if (err && /^PROTOCOL_ENQUEUE_AFTER_/.test(err.code)) {
+          } else if (err && (/^PROTOCOL_ENQUEUE_AFTER_/.test(err.code) || err.code === 'PROTOCOL_CONNECTION_LOST')) {
             resetClient() // reset the client
             return resolve(query(...args)) // attempt the query again
           } else if (err) {
