@@ -5,7 +5,7 @@
  * More detail regarding the MySQL module can be found here:
  * https://github.com/mysqljs/mysql
  * @author Jeremy Daly <jeremy@jeremydaly.com>
- * @version 1.5.3
+ * @version 1.5.4
  * @license MIT
  */
 
@@ -191,7 +191,11 @@ module.exports = (params) => {
             client.destroy() // destroy connection on timeout
             resetClient() // reset the client
             reject(err) // reject the promise with the error
-          } else if (err && (/^PROTOCOL_ENQUEUE_AFTER_/.test(err.code) || err.code === 'PROTOCOL_CONNECTION_LOST' || err.code === 'EPIPE')) {
+          } else if (
+            err && (/^PROTOCOL_ENQUEUE_AFTER_/.test(err.code) 
+            || err.code === 'PROTOCOL_CONNECTION_LOST' 
+            || err.code === 'EPIPE')
+          ) {
             resetClient() // reset the client
             return resolve(query(...args)) // attempt the query again
           } else if (err) {
