@@ -1,5 +1,7 @@
 # Serverless MySQL
 
+[![Serverless MySQL](https://user-images.githubusercontent.com/2053544/79284452-ac531700-7e88-11ea-8970-81e3e649e00a.png)](https://github.com/jeremydaly/serverless-mysql/)
+
 [![npm](https://img.shields.io/npm/v/serverless-mysql.svg)](https://www.npmjs.com/package/serverless-mysql)
 [![npm](https://img.shields.io/npm/l/serverless-mysql.svg)](https://www.npmjs.com/package/serverless-mysql)
 
