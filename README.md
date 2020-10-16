@@ -73,6 +73,21 @@ const mysql = require('serverless-mysql')({
 })
 ```
 
+If you are using Node with ES6:
+```javascript
+// You can replace `mysql` at your convenience
+import mysql from 'serverless-mysql';
+
+// OR include configuration options
+export default () => (
+  mysql({
+    backoff: 'decorrelated',
+    base: 5,
+    cap: 200,
+  })
+);
+```
+
 MySQL [connection options](https://github.com/mysqljs/mysql#connection-options) can be passed in at initialization or later using the `config()` method.
 
 ```javascript
