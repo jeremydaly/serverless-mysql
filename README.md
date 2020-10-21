@@ -277,6 +277,11 @@ From the graph below you can see that the average response time was **41 ms** (m
 
 Other tests that use larger configurations were extremely successful too, but I'd appreciate other independent tests to verify my assumptions.
 
+## Sponsors
+
+[![New Relic](https://user-images.githubusercontent.com/2053544/96728664-55238700-1382-11eb-93cb-82fe7cb5e043.png)](https://ad.doubleclick.net/ddm/trackclk/N1116303.3950900PODSEARCH.COM/B24770737.285235234;dc_trk_aid=479074825;dc_trk_cid=139488579;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;gdpr=${GDPR};gdpr_consent=${GDPR_CONSENT_755})
+<IMG SRC="https://ad.doubleclick.net/ddm/trackimp/N1116303.3950900PODSEARCH.COM/B24770737.285235234;dc_trk_aid=479074825;dc_trk_cid=139488579;ord=[timestamp];dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;gdpr=${GDPR};gdpr_consent=${GDPR_CONSENT_755}?" BORDER="0" HEIGHT="1" WIDTH="1" ALT="Advertisement">
+
 ## Contributions
 Contributions, ideas and bug reports are welcome and greatly appreciated. Please add [issues](https://github.com/jeremydaly/serverless-mysql/issues) for suggestions and bug reports or create a pull request.
 
