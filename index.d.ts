@@ -101,6 +101,7 @@ declare namespace serverlessMysql {
     query<T>(...args): Promise<T>
     end(): Promise<void>
     escape(str: string): MySQL.EscapeFunctions
+    escapeId(str: string): MySQL.EscapeFunctions
     quit(): void
     transaction(): Transaction
     getCounter(): number
