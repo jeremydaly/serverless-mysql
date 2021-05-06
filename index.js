@@ -316,7 +316,8 @@ module.exports = (params) => {
         if (typeof fn === 'function') { rollback = fn }
         return this
       },
-      commit: async function() { return await commit(queries,rollback) }
+      commit: async function() { return await commit(queries,rollback) },
+      end: function(){ return end() } 
     }
   }
 
