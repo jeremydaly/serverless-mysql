@@ -249,7 +249,7 @@ module.exports = (params) => {
       let results = await query(
         `SELECT COUNT(ID) as total, MAX(time) as max_age
         FROM information_schema.processlist
-        WHERE (user = ? AND @@max_user_connections > 0) OR true`,[_cfg.user])
+        WHERE (user = :user AND @@max_user_connections > 0) OR true`,{user: _cfg.user})
 
       _usedConns = {
         total: results[0].total || 0,
