@@ -378,6 +378,9 @@ module.exports = (params) => {
 
   let connCfg = typeof cfg.config === 'object' && !Array.isArray(cfg.config) ? cfg.config : {}
   let escape = MYSQL.escape
+  let escapeId = MYSQL.escapeId
+  let format = MYSQL.format
+
   // Set MySQL configs
   config(connCfg)
 
@@ -389,6 +392,8 @@ module.exports = (params) => {
     query,
     end,
     escape,
+    escapeId,
+    format,
     quit,
     transaction,
     getCounter,
