@@ -194,7 +194,8 @@ module.exports = (params) => {
           } else if (
             err && (/^PROTOCOL_ENQUEUE_AFTER_/.test(err.code) 
             || err.code === 'PROTOCOL_CONNECTION_LOST' 
-            || err.code === 'EPIPE')
+            || err.code === 'EPIPE'
+            || err.code === 'ECONNRESET')
           ) {
             resetClient() // reset the client
             return resolve(query(...args)) // attempt the query again
