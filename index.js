@@ -1,5 +1,7 @@
 'use strict'
 
+const NodeURL = require('url')
+
 /**
  * This module manages MySQL connections in serverless applications.
  * More detail regarding the MySQL module can be found here:
@@ -55,6 +57,33 @@ module.exports = (params) => {
   const randRange = (min,max) => Math.floor(Math.random() * (max - min + 1)) + min
   const fullJitter = () => randRange(0, Math.min(cap, base * 2 ** retries))
   const decorrelatedJitter = (sleep=0) => Math.min(cap, randRange(base, sleep * 3))
+  const uriToConnectionConfig = (connectionString) => {
+    let uri = undefined
+
+    try {
+      uri = new NodeURL.URL(connectionString)
+    } catch (error) {
+      throw new Error('Invalid data source URL provided')
+    }
+
+    const extraFields = {}
+
+    for (const [name, value] of uri.searchParams) {
+      extraFields[name] = value
+    }
+
+    const database = uri.pathname && uri.pathname.startsWith('/') ? uri.pathname.slice(1) : undefined  
+
+    const connectionFields =  {
+      host: uri.hostname ? uri.hostname : undefined,
+      user: uri.username ? uri.username : undefined,
+      port: uri.port ? Number(uri.port) : undefined,
+      password: uri.password ? uri.password : undefined,
+      database
+    }
+
+    return Object.assign(connectionFields, extraFields)
+  }
 
 
   /********************************************************************/
@@ -348,8 +377,7 @@ module.exports = (params) => {
   /********************************************************************/
   /**  INITIALIZATION                                                **/
   /********************************************************************/
-
-  let cfg = typeof params === 'object' && !Array.isArray(params) ? params : {}
+  const cfg = typeof params === 'object' && !Array.isArray(params) ? params : {}
 
   MYSQL = cfg.library || require('mysql')
   PromiseLibrary = cfg.promise || Promise
@@ -377,7 +405,14 @@ module.exports = (params) => {
   onKill = typeof cfg.onKill === 'function' ? cfg.onKill : () => {}
   onKillError = typeof cfg.onKillError === 'function' ? cfg.onKillError : () => {}
 
-  let connCfg = typeof cfg.config === 'object' && !Array.isArray(cfg.config) ? cfg.config : {}
+  let connCfg = {}
+  
+  if (typeof cfg.config === 'object' && !Array.isArray(cfg.config)) {
+    connCfg = cfg.config
+  } else if (typeof params === 'string') {
+    connCfg = uriToConnectionConfig(params)
+  }
+
   let escape = MYSQL.escape
   // Set MySQL configs
   config(connCfg)

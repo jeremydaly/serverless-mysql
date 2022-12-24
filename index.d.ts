@@ -110,5 +110,5 @@ declare namespace serverlessMysql {
   }
 }
 
-declare function serverlessMysql (cfg?: serverlessMysql.Config): serverlessMysql.ServerlessMysql
+declare function serverlessMysql (cfg?: string | serverlessMysql.Config): serverlessMysql.ServerlessMysql
 export = serverlessMysql

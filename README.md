@@ -134,6 +134,17 @@ let value = connection.escape('Some value to be escaped')
 ```
 
 ## Configuration Options
+
+There are two ways to provide a configuration.
+
+The one way is using a connection string at initialization time.
+
+```javascript
+const mysql = require('serverless-mysql')(`mysql://${process.env.USERNAME}:${process.env.PASSWORD}@${process.env.ENDPOINT}:${process.env.PORT}/${process.env.DATABASE}`)
+```
+
+The other way is to pass in the options defined in the below table.
+
 Below is a table containing all of the possible configuration options for `serverless-mysql`. Additional details are provided throughout the documentation.
 
 | Property | Type | Description | Default |
