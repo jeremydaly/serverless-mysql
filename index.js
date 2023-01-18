@@ -52,7 +52,12 @@ module.exports = (params) => {
   const resetRetries = () => retries = 0
   const getErrorCount = () => errors
   const getConfig = () => _cfg
-  const config = (args) => Object.assign(_cfg,args)
+  const config = (args) => {
+    if (typeof args === 'string') {
+      return Object.assign(_cfg,uriToConnectionConfig(args))
+    } 
+    return Object.assign(_cfg,args)
+  }
   const delay = ms => new PromiseLibrary(res => setTimeout(res, ms))
   const randRange = (min,max) => Math.floor(Math.random() * (max - min + 1)) + min
   const fullJitter = () => randRange(0, Math.min(cap, base * 2 ** retries))
@@ -410,7 +415,7 @@ module.exports = (params) => {
   if (typeof cfg.config === 'object' && !Array.isArray(cfg.config)) {
     connCfg = cfg.config
   } else if (typeof params === 'string') {
-    connCfg = uriToConnectionConfig(params)
+    connCfg = params
   }
 
   let escape = MYSQL.escape
