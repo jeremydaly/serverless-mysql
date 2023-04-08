@@ -1,6 +1,6 @@
 {
   "name": "serverless-mysql",
-  "version": "1.5.4",
+  "version": "1.5.5",
   "description": "A module for managing MySQL connections at serverless scale.",
   "main": "index.js",
   "types": "index.d.ts",
@@ -8,7 +8,8 @@
     "test": "mocha --check-leaks --recursive",
     "test-cov": "nyc --reporter=html mocha --check-leaks --recursive",
     "test-ci": "nyc npm test && nyc report --reporter=text-lcov | ./node_modules/coveralls/bin/coveralls.js",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "prepublishOnly": "npm run lint && npm run test"
   },
   "repository": {
     "type": "git",
