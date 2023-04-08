@@ -2,7 +2,7 @@ name: 'Merge to main'
 
 on:
   push:
-    branches: [main]
+    branches: [master]
 
 env:
   NPM_VERSION: latest
