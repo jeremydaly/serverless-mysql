@@ -90,7 +90,7 @@ declare namespace serverlessMysql {
   }
 
   class Transaction {
-    query(...args): this
+    query(...args: any[]): this
     rollback(fn: Function): this
     commit<T = any>(): Promise<T[]>
   }
@@ -98,7 +98,7 @@ declare namespace serverlessMysql {
   export type ServerlessMysql = {
     connect(wait?: number): Promise<void>
     config(config?: string | MySQL.ConnectionConfig): MySQL.ConnectionConfig
-    query<T>(...args): Promise<T>
+    query<T>(...args: any[]): Promise<T>
     end(): Promise<void>
     escape: MySQL.EscapeFunctions['escape'],
     escapeId: MySQL.EscapeFunctions['escapeId'],
