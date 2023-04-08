@@ -97,10 +97,12 @@ declare namespace serverlessMysql {
 
   export type ServerlessMysql = {
     connect(wait?: number): Promise<void>
-    config(config?: MySQL.ConnectionConfig): MySQL.ConnectionConfig
+    config(config?: string | MySQL.ConnectionConfig): MySQL.ConnectionConfig
     query<T>(...args: any[]): Promise<T>
     end(): Promise<void>
-    escape(str: string): MySQL.EscapeFunctions
+    escape: MySQL.EscapeFunctions['escape'],
+    escapeId: MySQL.EscapeFunctions['escapeId'],
+    format: MySQL.EscapeFunctions['format'],
     quit(): void
     transaction(): Transaction
     getCounter(): number
@@ -110,5 +112,5 @@ declare namespace serverlessMysql {
   }
 }
 
-declare function serverlessMysql (cfg?: serverlessMysql.Config): serverlessMysql.ServerlessMysql
+declare function serverlessMysql (cfg?: string | serverlessMysql.Config): serverlessMysql.ServerlessMysql
 export = serverlessMysql

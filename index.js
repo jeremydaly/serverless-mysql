@@ -1,5 +1,7 @@
 'use strict'
 
+const NodeURL = require('url')
+
 /**
  * This module manages MySQL connections in serverless applications.
  * More detail regarding the MySQL module can be found here:
@@ -27,7 +29,6 @@ module.exports = (params) => {
     'ER_CON_COUNT_ERROR',
     'ER_USER_LIMIT_REACHED',
     'ER_OUT_OF_RESOURCES',
-    'ER_CON_COUNT_ERROR',
     'PROTOCOL_CONNECTION_LOST', // if the connection is lost
     'PROTOCOL_SEQUENCE_TIMEOUT', // if the connection times out
     'ETIMEDOUT' // if the connection times out
@@ -50,11 +51,43 @@ module.exports = (params) => {
   const resetRetries = () => retries = 0
   const getErrorCount = () => errors
   const getConfig = () => _cfg
-  const config = (args) => Object.assign(_cfg,args)
+  const config = (args) => {
+    if (typeof args === 'string') {
+      return Object.assign(_cfg,uriToConnectionConfig(args))
+    } 
+    return Object.assign(_cfg,args)
+  }
   const delay = ms => new PromiseLibrary(res => setTimeout(res, ms))
   const randRange = (min,max) => Math.floor(Math.random() * (max - min + 1)) + min
   const fullJitter = () => randRange(0, Math.min(cap, base * 2 ** retries))
   const decorrelatedJitter = (sleep=0) => Math.min(cap, randRange(base, sleep * 3))
+  const uriToConnectionConfig = (connectionString) => {
+    let uri = undefined
+
+    try {
+      uri = new NodeURL.URL(connectionString)
+    } catch (error) {
+      throw new Error('Invalid data source URL provided')
+    }
+
+    const extraFields = {}
+
+    for (const [name, value] of uri.searchParams) {
+      extraFields[name] = value
+    }
+
+    const database = uri.pathname && uri.pathname.startsWith('/') ? uri.pathname.slice(1) : undefined  
+
+    const connectionFields =  {
+      host: uri.hostname ? uri.hostname : undefined,
+      user: uri.username ? uri.username : undefined,
+      port: uri.port ? Number(uri.port) : undefined,
+      password: uri.password ? uri.password : undefined,
+      database
+    }
+
+    return Object.assign(connectionFields, extraFields)
+  }
 
 
   /********************************************************************/
@@ -194,7 +227,8 @@ module.exports = (params) => {
           } else if (
             err && (/^PROTOCOL_ENQUEUE_AFTER_/.test(err.code) 
             || err.code === 'PROTOCOL_CONNECTION_LOST' 
-            || err.code === 'EPIPE')
+            || err.code === 'EPIPE'
+            || err.code === 'ECONNRESET')
           ) {
             resetClient() // reset the client
             return resolve(query(...args)) // attempt the query again
@@ -347,8 +381,7 @@ module.exports = (params) => {
   /********************************************************************/
   /**  INITIALIZATION                                                **/
   /********************************************************************/
-
-  let cfg = typeof params === 'object' && !Array.isArray(params) ? params : {}
+  const cfg = typeof params === 'object' && !Array.isArray(params) ? params : {}
 
   MYSQL = cfg.library || require('mysql')
   PromiseLibrary = cfg.promise || Promise
@@ -376,8 +409,18 @@ module.exports = (params) => {
   onKill = typeof cfg.onKill === 'function' ? cfg.onKill : () => {}
   onKillError = typeof cfg.onKillError === 'function' ? cfg.onKillError : () => {}
 
-  let connCfg = typeof cfg.config === 'object' && !Array.isArray(cfg.config) ? cfg.config : {}
+  let connCfg = {}
+  
+  if (typeof cfg.config === 'object' && !Array.isArray(cfg.config)) {
+    connCfg = cfg.config
+  } else if (typeof params === 'string') {
+    connCfg = params
+  }
+
   let escape = MYSQL.escape
+  let escapeId = MYSQL.escapeId
+  let format = MYSQL.format
+
   // Set MySQL configs
   config(connCfg)
 
@@ -389,6 +432,8 @@ module.exports = (params) => {
     query,
     end,
     escape,
+    escapeId,
+    format,
     quit,
     transaction,
     getCounter,
