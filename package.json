@@ -1,6 +1,6 @@
 {
   "name": "serverless-mysql",
-  "version": "1.5.4",
+  "version": "1.5.5",
   "description": "A module for managing MySQL connections at serverless scale.",
   "main": "index.js",
   "types": "index.d.ts",
