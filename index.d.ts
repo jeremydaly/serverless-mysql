@@ -100,7 +100,9 @@ declare namespace serverlessMysql {
     config(config?: string | MySQL.ConnectionConfig): MySQL.ConnectionConfig
     query<T>(...args): Promise<T>
     end(): Promise<void>
-    escape(str: string): MySQL.EscapeFunctions
+    escape: MySQL.EscapeFunctions['escape'],
+    escapeId: MySQL.EscapeFunctions['escapeId'],
+    format: MySQL.EscapeFunctions['format'],
     quit(): void
     transaction(): Transaction
     getCounter(): number

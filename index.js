@@ -418,6 +418,9 @@ module.exports = (params) => {
   }
 
   let escape = MYSQL.escape
+  let escapeId = MYSQL.escapeId
+  let format = MYSQL.format
+
   // Set MySQL configs
   config(connCfg)
 
@@ -429,6 +432,8 @@ module.exports = (params) => {
     query,
     end,
     escape,
+    escapeId,
+    format,
     quit,
     transaction,
     getCounter,
