@@ -49,4 +49,4 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Run ESLint
-        run: npm run lint:check
+        run: npm run lint
