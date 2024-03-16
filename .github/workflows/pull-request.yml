@@ -4,7 +4,7 @@ on:
     types: [opened, reopened, synchronize]
 
 env:
-  NPM_VERSION: 6
+  NPM_VERSION: 7
 
 jobs:
   test:
@@ -22,6 +22,11 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
+      - name: Install npm
+        run: |
+          npm install -g npm@$NPM_VERSION &&
+          npm --version &&
+          npm list -g --depth 0
       - name: Install dependencies
         run: npm ci
       - name: Run tests
