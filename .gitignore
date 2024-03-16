@@ -13,3 +13,7 @@ coverage
 
 # Serverless
 .serverless
+
+# IDE settings
+.idea
+.vscode
