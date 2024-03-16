@@ -4,7 +4,7 @@ on:
     types: [opened, reopened, synchronize]
 
 env:
-  NPM_VERSION: latest
+  NPM_VERSION: 6
 
 jobs:
   test:
