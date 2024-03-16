@@ -103,7 +103,7 @@ let results = await query('SELECT * FROM table WHERE name = ?', ['serverless'])
 let results = await query({
   sql: 'SELECT * FROM table WHERE name = ?',
   timeout: 10000,
-  values: ['serverless'])
+  values: ['serverless']
 })
 ```
 
@@ -204,6 +204,26 @@ promise: require('bluebird')
 Set your own mysql library, wrapped with AWS x-ray for instance
 ```javascript
 library: require('aws-sdk-xray-node')(require('mysql'));
+```
+
+### Consideration when using TypeScript
+Currently, our type definitions rely on the `mysql` module.
+In order to use a custom library, you will need to do something along the following snippet:
+
+```typescript
+import * as serverlessMysql from 'serverless-mysql';
+import * as mysql2 from 'mysql2';
+
+const slsMysql = serverlessMysql({
+  library: mysql2 as any
+})
+
+// OR
+
+const slsMysql2 = serverlessMysql({
+  // @ts-ignore
+  library: mysql2
+})
 ```
 
 ## Events
