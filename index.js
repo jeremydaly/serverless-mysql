@@ -37,7 +37,7 @@ module.exports = (params) => {
   // Init setting values
   let MYSQL, manageConns, cap, base, maxRetries, connUtilization, backoff,
     zombieMinTimeout, zombieMaxTimeout, maxConnsFreq, usedConnsFreq,
-    onConnect, onConnectError, onRetry, onClose, onError, onKill, onKillError, PromiseLibrary
+    onConnect, onConnectError, onRetry, onClose, onError, onKill, onKillError, PromiseLibrary, handleFailover
 
   /********************************************************************/
   /**  HELPER/CONVENIENCE FUNCTIONS                                  **/
@@ -220,7 +220,9 @@ module.exports = (params) => {
         // If no args are passed in a transaction, ignore query
         if (this && this.rollback && args.length === 0) { return resolve([]) }
         client.query(...args, async (err, results) => {
-          if (err && err.code === 'PROTOCOL_SEQUENCE_TIMEOUT') {
+          if (err && (err.code === 'PROTOCOL_SEQUENCE_TIMEOUT'
+            || (handleFailover && err.code === 'ER_OPTION_PREVENTS_STATEMENT'))
+          ) {
             client.destroy() // destroy connection on timeout
             resetClient() // reset the client
             reject(err) // reject the promise with the error
@@ -399,6 +401,7 @@ module.exports = (params) => {
   zombieMaxTimeout = Number.isInteger(cfg.zombieMaxTimeout) ? cfg.zombieMaxTimeout : 60*15 // default to 15 minutes
   maxConnsFreq = Number.isInteger(cfg.maxConnsFreq) ? cfg.maxConnsFreq : 15*1000 // default to 15 seconds
   usedConnsFreq = Number.isInteger(cfg.usedConnsFreq) ? cfg.usedConnsFreq : 0 // default to 0 ms
+  handleFailover = cfg.handleFailover === true ? true : false // default to false
 
   // Event handlers
   onConnect = typeof cfg.onConnect === 'function' ? cfg.onConnect : () => {}
