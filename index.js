@@ -383,7 +383,7 @@ module.exports = (params) => {
   /********************************************************************/
   const cfg = typeof params === 'object' && !Array.isArray(params) ? params : {}
 
-  MYSQL = cfg.library || require('mysql')
+  MYSQL = cfg.library || require('mysql2')
   PromiseLibrary = cfg.promise || Promise
 
   // Set defaults for connection management
