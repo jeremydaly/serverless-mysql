@@ -25,6 +25,13 @@
     "aurora"
   ],
   "author": "Jeremy Daly <jeremy@jeremydaly.com>",
+  "maintainers": [
+    {
+      "name": "Naor Peled",
+      "email": "me@naor.dev",
+      "url": "https://naor.dev"
+    }
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/jeremydaly/serverless-mysql/issues"
