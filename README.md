@@ -149,7 +149,7 @@ Below is a table containing all of the possible configuration options for `serve
 
 | Property | Type | Description | Default |
 | -------- | ---- | ----------- | ------- |
-| library | `Function` | Custom mysql library | `require('mysql')` |
+| library | `Function` | Custom mysql library | `require('mysql2')` |
 | promise | `Function` | Custom promise library | `Promise` |
 | backoff | `String` or `Function` | Backoff algorithm to be used when retrying connections. Possible values are `full` and `decorrelated`, or you can also specify your own algorithm. See [Connection Backoff](#connection-backoff) for more information.  | `full` |
 | base | `Integer` | Number of milliseconds added to random backoff values. | `2` |
@@ -207,7 +207,7 @@ library: require('aws-sdk-xray-node')(require('mysql'));
 ```
 
 ### Consideration when using TypeScript
-Currently, our type definitions rely on the `mysql` module.
+Currently, our type definitions rely on the `mysql2` module.
 In order to use a custom library, you will need to do something along the following snippet:
 
 ```typescript
