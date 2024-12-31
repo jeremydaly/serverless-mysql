@@ -1,6 +1,6 @@
 // Type definitions for serverless-mysql
 
-import * as MySQL from 'mysql'
+import * as MySQL from 'mysql2'
 
 // https://github.com/microsoft/TypeScript/issues/8335#issuecomment-215194561
 declare namespace serverlessMysql {
@@ -100,9 +100,9 @@ declare namespace serverlessMysql {
     config(config?: string | MySQL.ConnectionConfig): MySQL.ConnectionConfig
     query<T>(...args: any[]): Promise<T>
     end(): Promise<void>
-    escape: MySQL.EscapeFunctions['escape'],
-    escapeId: MySQL.EscapeFunctions['escapeId'],
-    format: MySQL.EscapeFunctions['format'],
+    escape: typeof MySQL.escape
+    escapeId: typeof MySQL.escapeId
+    format: typeof MySQL.format
     quit(): void
     transaction(): Transaction
     getCounter(): number
