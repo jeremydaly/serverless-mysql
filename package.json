@@ -44,7 +44,7 @@
     "mocha": "^5.2.0",
     "mocha-lcov-reporter": "^1.3.0",
     "nyc": "^14.1.1",
-    "rewire": "^4.0.1",
+    "rewire": "^7.0.0",
     "sinon": "^6.3.5"
   },
   "files": [
