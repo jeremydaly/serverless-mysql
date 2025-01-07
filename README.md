@@ -5,11 +5,11 @@
 
 ### A module for managing MySQL connections at *serverless* scale.
 
-Serverless MySQL is a wrapper for Doug Wilson's amazing **[mysql](https://github.com/mysqljs/mysql)** Node.js module. Normally, using the `mysql` module with Node apps would be just fine. However, serverless functions (like AWS Lambda, Google Cloud Functions, and Azure Functions) scale almost infinitely by creating separate instances for each concurrent user. This is a **MAJOR PROBLEM** for RDBS solutions like MySQL, because available connections can be quickly maxed out by competing functions. Not anymore. 😀
+Serverless MySQL is a wrapper for Doug Wilson's amazing **[mysql2](https://github.com/mysqljs/mysql2)** Node.js module. Normally, using the `mysql2` module with Node apps would be just fine. However, serverless functions (like AWS Lambda, Google Cloud Functions, and Azure Functions) scale almost infinitely by creating separate instances for each concurrent user. This is a **MAJOR PROBLEM** for RDBS solutions like MySQL, because available connections can be quickly maxed out by competing functions. Not anymore. 😀
 
-Serverless MySQL adds a connection management component to the `mysql` module that is designed specifically for use with serverless applications. This module constantly monitors the number of connections being utilized, and then based on your settings, manages those connections to allow thousands of concurrent executions to share them. It will clean up zombies, enforce connection limits per user, and retry connections using trusted backoff algorithms.
+Serverless MySQL adds a connection management component to the `mysql2` module that is designed specifically for use with serverless applications. This module constantly monitors the number of connections being utilized, and then based on your settings, manages those connections to allow thousands of concurrent executions to share them. It will clean up zombies, enforce connection limits per user, and retry connections using trusted backoff algorithms.
 
-In addition, Serverless MySQL also adds modern `async/await` support to the `mysql` module, eliminating callback hell or the need to wrap calls in promises. It also dramatically simplifies **transactions**, giving you a simple and consistent pattern to handle common workflows.
+In addition, Serverless MySQL also adds modern `async/await` support to the `mysql2` module, eliminating callback hell or the need to wrap calls in promises. It also dramatically simplifies **transactions**, giving you a simple and consistent pattern to handle common workflows.
 
 **NOTE:** This module *should* work with any standards-based MySQL server. It has been tested with AWS's RDS MySQL, Aurora MySQL, and Aurora Serverless.
 
@@ -57,7 +57,7 @@ npm i serverless-mysql
 - Assume AWS endorsed best practices from [here](https://github.com/aws-samples/aws-appsync-rds-aurora-sample/blob/master/src/lamdaresolver/index.js)
 
 ## How to use this module
-Serverless MySQL wraps the **[mysql](https://github.com/mysqljs/mysql)** module, so this module supports pretty much everything that the `mysql` module does. It uses all the same [connection options](https://github.com/mysqljs/mysql#connection-options), provides a `query()` method that accepts the same arguments when [performing queries](https://github.com/mysqljs/mysql#performing-queries) (except the callback), and passes back the query results exactly as the `mysql` module returns them. There are a few things that don't make sense in serverless environments, like streaming rows, so there is no support for that yet.
+Serverless MySQL wraps the **[mysql](https://github.com/mysqljs/mysql)** module, so this module supports pretty much everything that the `mysql2` module does. It uses all the same [connection options](https://github.com/mysqljs/mysql#connection-options), provides a `query()` method that accepts the same arguments when [performing queries](https://github.com/mysqljs/mysql#performing-queries) (except the callback), and passes back the query results exactly as the `mysql2` module returns them. There are a few things that don't make sense in serverless environments, like streaming rows, so there is no support for that yet.
 
 To use Serverless MySQL, require it **OUTSIDE** your main function handler. This will allow for connection reuse between executions. The module must be initialized before its methods are available. [Configuration options](#configuration-options) must be passed in during initialization.
 
@@ -90,7 +90,7 @@ You can explicitly establish a connection using the `connect()` method if you wa
 await mysql.connect()
 ```
 
-Running queries is super simple using the `query()` method. It supports all [query options](https://github.com/mysqljs/mysql#performing-queries) supported by the `mysql` module, but returns a promise instead of using the standard callbacks. You either need to `await` them or wrap them in a promise chain.
+Running queries is super simple using the `query()` method. It supports all [query options](https://github.com/mysqljs/mysql#performing-queries) supported by the `mysql2` module, but returns a promise instead of using the standard callbacks. You either need to `await` them or wrap them in a promise chain.
 
 ```javascript
 // Simple query
@@ -121,7 +121,7 @@ Note that `end()` will **NOT** necessarily terminate the connection. Only if it 
 mysql.quit()
 ```
 
-If you need access to the `connection` object, you can use the `getClient()` method. This will allow you to use any supported feature of the `mysql` module directly.
+If you need access to the `connection` object, you can use the `getClient()` method. This will allow you to use any supported feature of the `mysql2` module directly.
 
 ```javascript
 // Connect to your MySQL instance first
@@ -154,7 +154,7 @@ Below is a table containing all of the possible configuration options for `serve
 | backoff | `String` or `Function` | Backoff algorithm to be used when retrying connections. Possible values are `full` and `decorrelated`, or you can also specify your own algorithm. See [Connection Backoff](#connection-backoff) for more information.  | `full` |
 | base | `Integer` | Number of milliseconds added to random backoff values. | `2` |
 | cap | `Integer` | Maximum number of milliseconds between connection retries. | `100` |
-| config | `Object` | A `mysql` configuration object as defined [here](https://github.com/mysqljs/mysql#connection-options) | `{}` |
+| config | `Object` | A `mysql2` configuration object as defined [here](https://github.com/mysqljs/mysql#connection-options) | `{}` |
 | connUtilization | `Number` | The percentage of total connections to use when connecting to your MySQL server. A value of `0.75` would use 75% of your total available connections. | `0.8` |
 | manageConns | `Boolean` | Flag indicating whether or not you want `serverless-mysql` to manage MySQL connections for you. | `true` |
 | maxConnsFreq | `Integer` | The number of milliseconds to cache lookups of @@max_connections. | `15000` |
@@ -203,7 +203,7 @@ promise: require('bluebird')
 
 Set your own mysql library, wrapped with AWS x-ray for instance
 ```javascript
-library: require('aws-sdk-xray-node')(require('mysql'));
+library: require('aws-sdk-xray-node')(require('mysql2'));
 ```
 
 ### Consideration when using TypeScript
@@ -220,7 +220,7 @@ const slsMysql = serverlessMysql({
 
 // OR
 
-const slsMysql2 = serverlessMysql({
+const slsMysql = serverlessMysql({
   // @ts-ignore
   library: mysql2
 })
@@ -229,7 +229,7 @@ const slsMysql2 = serverlessMysql({
 ## Events
 The module fires seven different types of events: `onConnect`, `onConnectError`, `onRetry`, `onClose`, `onError`, `onKill`, and `onKillError`. These are *reporting* events that allow you to add logging or perform additional actions. You could use these events to short-circuit your handler execution, but using `catch` blocks is preferred. For example, `onError` and `onKillError` are not fatal and will be handled by `serverless-mysql`. Therefore, they will **NOT** `throw` an error and trigger a `catch` block.
 
-Error events (`onConnectError`, `onError` and `onKillError`) all receive one argument containing the `mysql` module error object.
+Error events (`onConnectError`, `onError` and `onKillError`) all receive one argument containing the `mysql2` module error object.
 
 ```javascript
 onConnectError: (e) => { console.log('Connect Error: ' + e.code) }
@@ -251,7 +251,7 @@ If you set max `user_connections`, the module will only manage connections for t
 If you're not setting max `user_connections`, the user **MUST BE** granted the `PROCESS` privilege in order to count other connections. Otherwise it will assume that its connections are the only ones being used. Granting `PROCESS` is fairly safe as it is a *read only* permission and doesn't expose any sensitive data.
 
 ## Query Timeouts
-The `mysql` module allows you to specify a "[timeout](https://github.com/mysqljs/mysql#timeouts)" with each query. Typically this will disconnect the connection and prevent you from running additional queries. `serverless-mysql` handles timeouts a bit more elegantly by throwing an error and `destroy()`ing the connection. This will reset the connection completely, allowing you to run additional queries **AFTER** you catch the error.
+The `mysql2` module allows you to specify a "[timeout](https://github.com/mysqljs/mysql#timeouts)" with each query. Typically this will disconnect the connection and prevent you from running additional queries. `serverless-mysql` handles timeouts a bit more elegantly by throwing an error and `destroy()`ing the connection. This will reset the connection completely, allowing you to run additional queries **AFTER** you catch the error.
 
 ## Transaction Support
 Transaction support in `serverless-mysql` has been dramatically simplified. Start a new transaction using the `transaction()` method, and then chain queries using the `query()` method. The `query()` method supports all standard query options. Alternatively, you can specify a function as the only argument in a `query()` method call and return the arguments as an array of values. The function receives two arguments, the result of the last query executed and an array containing all the previous query results. This is useful if you need values from a previous query as part of your transaction.
