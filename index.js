@@ -31,7 +31,8 @@ module.exports = (params) => {
     'ER_OUT_OF_RESOURCES',
     'PROTOCOL_CONNECTION_LOST', // if the connection is lost
     'PROTOCOL_SEQUENCE_TIMEOUT', // if the connection times out
-    'ETIMEDOUT' // if the connection times out
+    'ETIMEDOUT', // if the connection times out
+    'PROTOCOL_ENQUEUE_AFTER_FATAL_ERROR'
   ]
 
   // Init setting values
@@ -54,7 +55,7 @@ module.exports = (params) => {
   const config = (args) => {
     if (typeof args === 'string') {
       return Object.assign(_cfg,uriToConnectionConfig(args))
-    } 
+    }
     return Object.assign(_cfg,args)
   }
   const delay = ms => new PromiseLibrary(res => setTimeout(res, ms))
@@ -76,7 +77,7 @@ module.exports = (params) => {
       extraFields[name] = value
     }
 
-    const database = uri.pathname && uri.pathname.startsWith('/') ? uri.pathname.slice(1) : undefined  
+    const database = uri.pathname && uri.pathname.startsWith('/') ? uri.pathname.slice(1) : undefined
 
     const connectionFields =  {
       host: uri.hostname ? uri.hostname : undefined,
@@ -225,8 +226,8 @@ module.exports = (params) => {
             resetClient() // reset the client
             reject(err) // reject the promise with the error
           } else if (
-            err && (/^PROTOCOL_ENQUEUE_AFTER_/.test(err.code) 
-            || err.code === 'PROTOCOL_CONNECTION_LOST' 
+            err && (/^PROTOCOL_ENQUEUE_AFTER_/.test(err.code)
+            || err.code === 'PROTOCOL_CONNECTION_LOST'
             || err.code === 'EPIPE'
             || err.code === 'ECONNRESET')
           ) {
@@ -410,7 +411,7 @@ module.exports = (params) => {
   onKillError = typeof cfg.onKillError === 'function' ? cfg.onKillError : () => {}
 
   let connCfg = {}
-  
+
   if (typeof cfg.config === 'object' && !Array.isArray(cfg.config)) {
     connCfg = cfg.config
   } else if (typeof params === 'string') {
