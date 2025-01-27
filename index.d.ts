@@ -87,6 +87,10 @@ declare namespace serverlessMysql {
      * Integer  The minimum number of seconds that a connection must be idle before the module will recycle it.  3
      */
     zombieMinTimeout?: number
+    /**
+     * Boolean  Handle a failover with a DNS switchover gracefully. Defaults to false.
+     */
+    handleFailover?: boolean
   }
 
   class Transaction {
