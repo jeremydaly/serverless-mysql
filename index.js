@@ -308,7 +308,7 @@ module.exports = (params) => {
       `SELECT ID,time FROM information_schema.processlist
         WHERE command = 'Sleep' AND time >= ? AND user = ?
         ORDER BY time DESC`,
-      [!isNaN(timeout) ? timeout : 60*15, _cfg.user])
+      [!isNaN(timeout) ? timeout : zombieMaxTimeout, _cfg.user])
 
     // Kill zombies
     for (let i = 0; i < zombies.length; i++) {
