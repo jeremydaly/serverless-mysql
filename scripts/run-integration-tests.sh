@@ -46,16 +46,11 @@ $DOCKER_COMPOSE exec -T mysql mysql -uroot -ppassword -e "SHOW VARIABLES LIKE '%
 
 # Run the integration tests
 echo "Running integration tests..."
-# Use the root user for tests to ensure we have all necessary permissions
-# Run tests with a background process that will kill it after 60 seconds if it hangs
 (
-    # Start a background process that will kill the test process if it runs too long
     (
         sleep 60
         echo "Tests are taking too long, killing process..."
-        # Get all child processes and kill them
         pkill -P $$ || true
-        # If that doesn't work, try more aggressive measures
         for pid in $(ps -o pid= --ppid $$); do
             echo "Killing process $pid"
             kill -9 $pid 2>/dev/null || true
@@ -63,14 +58,12 @@ echo "Running integration tests..."
     ) &
     WATCHDOG_PID=$!
     
-    # Run the tests with NODE_DEBUG to see what's happening
     echo "Starting tests with process ID: $$"
     MYSQL_HOST=127.0.0.1 MYSQL_PORT=3306 MYSQL_DATABASE=serverless_mysql_test MYSQL_USER=root MYSQL_PASSWORD=password NODE_DEBUG=mysql,net,stream npm run test:integration
     TEST_EXIT_CODE=$?
     
     echo "Tests completed with exit code: $TEST_EXIT_CODE"
     
-    # Kill the watchdog process since tests completed
     echo "Killing watchdog process: $WATCHDOG_PID"
     kill $WATCHDOG_PID 2>/dev/null || true
     
