@@ -24,7 +24,7 @@ jobs:
         image: mysql:8.0.33
         env:
           MYSQL_ROOT_PASSWORD: password
-          MYSQL_DATABASE: test
+          MYSQL_DATABASE: serverless_mysql_test
           MYSQL_ROOT_HOST: "%"
         ports:
           - 3306:3306
@@ -56,7 +56,7 @@ jobs:
         env:
           MYSQL_HOST: 127.0.0.1
           MYSQL_PORT: 3306
-          MYSQL_DATABASE: test
+          MYSQL_DATABASE: serverless_mysql_test
           MYSQL_USER: root
           MYSQL_PASSWORD: password
 
@@ -66,6 +66,6 @@ jobs:
         env:
           MYSQL_HOST: 127.0.0.1
           MYSQL_PORT: 3306
-          MYSQL_DATABASE: test
+          MYSQL_DATABASE: serverless_mysql_test
           MYSQL_USER: root
           MYSQL_PASSWORD: password

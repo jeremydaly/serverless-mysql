@@ -127,7 +127,7 @@ The integration tests use a MySQL 8.0 container with the following configuration
 
 - Host: 127.0.0.1
 - Port: 3306
-- Database: serverless_mysql_test (for local testing) or test (for GitHub Actions)
+- Database: serverless_mysql_test
 - User: root
 - Password: password
 
