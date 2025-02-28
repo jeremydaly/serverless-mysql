@@ -128,24 +128,24 @@ module.exports = (params) => {
         // Connect to the MySQL database
         client = MYSQL.createConnection(_cfg)
 
-        // If error, reset the client to null and reject
-        client.on('error', err => {
-          resetClient() // reset the client
-          onError(err) // fire onError event
-          reject(err)
-        })
-
-        // When connected, resolve the promise
-        client.connect(err => {
+        // Wait until MySQL is connected and ready before moving on
+        client.connect(function (err) {
           if (err) {
-            resetClient() // reset the client
-            onConnectError(err) // fire onConnectError event
+            resetClient()
             reject(err)
           } else {
-            resetRetries() // reset retries counter
-            onConnect(client) // fire onConnect event
-            resolve(true)
+            resetRetries()
+            onConnect(client)
+            return resolve(true)
           }
+        })
+
+        // Add error listener (reset client on failures)
+        client.on('error', async err => {
+          errors++
+          resetClient() // reset client
+          resetCounter() // reset counter
+          onError(err) // fire onError event (PROTOCOL_CONNECTION_LOST)
         })
       }) // end promise
 
