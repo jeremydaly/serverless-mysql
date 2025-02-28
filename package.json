@@ -5,11 +5,14 @@
   "main": "index.js",
   "types": "index.d.ts",
   "scripts": {
-    "test": "mocha --check-leaks --recursive",
-    "test-cov": "nyc --reporter=html mocha --check-leaks --recursive",
-    "test-ci": "nyc npm test && nyc report --reporter=text-lcov | ./node_modules/coveralls/bin/coveralls.js",
+    "test:unit": "mocha --check-leaks --recursive test/unit/*.spec.js",
+    "test:integration": "mocha --check-leaks --recursive test/integration/*.spec.js",
+    "test:integration:docker": "./scripts/run-integration-tests.sh",
+    "test:docker": "./scripts/run-all-tests.sh",
+    "test": "mocha --check-leaks --recursive test/{unit,integration}/*.spec.js",
+    "test-cov": "nyc --reporter=html mocha --check-leaks --recursive test/{unit,integration}/*.spec.js",
     "lint": "eslint .",
-    "prepublishOnly": "npm run lint && npm run test"
+    "prepublishOnly": "npm run lint && npm run test:unit"
   },
   "repository": {
     "type": "git",
@@ -50,6 +53,7 @@
   "files": [
     "LICENSE",
     "README.md",
+    "CONTRIBUTING.md",
     "index.js",
     "index.d.ts"
   ],

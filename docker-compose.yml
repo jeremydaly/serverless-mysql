@@ -1,0 +1,21 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: serverless-mysql-test-db
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: serverless_mysql_test
+      MYSQL_USER: testuser
+      MYSQL_PASSWORD: testpassword
+      # Allow connections from any host
+      MYSQL_ROOT_HOST: "%"
+    ports:
+      - "3306:3306"
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --max_connections=1000
+      --wait_timeout=28800
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 5s
+      retries: 10

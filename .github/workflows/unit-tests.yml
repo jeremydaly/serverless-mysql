@@ -1,10 +1,14 @@
-name: "CI"
+name: "Unit Tests"
 on:
   pull_request:
     types: [opened, reopened, synchronize]
   push:
     branches:
       - master
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref_name }}
+  cancel-in-progress: true
 
 jobs:
   test:
@@ -29,8 +33,8 @@ jobs:
           npm list -g --depth 0
       - name: Install dependencies
         run: npm ci
-      - name: Run tests
-        run: npm run test
+      - name: Run unit tests
+        run: npm run test:unit
 
   lint:
     name: "ESLint"

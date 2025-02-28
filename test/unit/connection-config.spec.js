@@ -1,6 +1,6 @@
 const assert = require("assert");
 
-const mysql = require("../index");
+const mysql = require("../../index");
 
 describe("Test a connection config", () => {
   it("Should get a valid connection config when a config is passed in", () => {
