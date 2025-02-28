@@ -10,6 +10,11 @@ on:
 # For integration tests, see integration-tests.yml
 # For more information on contributing, see CONTRIBUTING.md
 
+# Cancel in-progress runs on new commits to the same PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
