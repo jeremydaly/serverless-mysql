@@ -38,13 +38,13 @@ Integration tests require a MySQL database. You can use the included Docker Comp
 
 ```bash
 # Start MySQL container
-docker-compose up -d
+docker compose up -d
 
 # Run integration tests
 npm run test:integration
 
 # Stop MySQL container when done
-docker-compose down
+docker compose down
 ```
 
 For convenience, you can use the provided script to run the integration tests with Docker:
@@ -54,10 +54,12 @@ For convenience, you can use the provided script to run the integration tests wi
 npm run test:integration:docker
 ```
 
+The script includes a watchdog process that will automatically terminate tests if they run for too long (60 seconds), which helps prevent hanging test processes.
+
 You can also configure the MySQL connection using environment variables:
 
 ```bash
-MYSQL_HOST=localhost MYSQL_PORT=3306 MYSQL_DATABASE=test MYSQL_USER=root MYSQL_PASSWORD=password npm run test:integration
+MYSQL_HOST=127.0.0.1 MYSQL_PORT=3306 MYSQL_DATABASE=serverless_mysql_test MYSQL_USER=root MYSQL_PASSWORD=password npm run test:integration
 ```
 
 ### Running All Tests
@@ -76,6 +78,16 @@ npm run test:docker
 
 This will run the unit tests first, and if they pass, it will run the integration tests with Docker.
 
+### Test Coverage
+
+To run tests with coverage reporting:
+
+```bash
+npm run test-cov
+```
+
+This will generate an HTML coverage report in the `coverage` directory.
+
 ## Test Structure
 
 - Unit tests are located in `test/unit/*.spec.js`
@@ -88,11 +100,16 @@ This will run the unit tests first, and if they pass, it will run the integratio
 
 The integration tests use a MySQL 8.0 container with the following configuration:
 
-- Host: localhost
+- Host: 127.0.0.1
 - Port: 3306
-- Database: test
+- Database: serverless_mysql_test (for local testing) or test (for GitHub Actions)
 - User: root
 - Password: password
+
+The MySQL container is configured with:
+- Native password authentication
+- 1000 max connections
+- Extended wait timeout (28800 seconds)
 
 This is configured in the `docker-compose.yml` file and used by the GitHub Actions workflow for CI.
 
@@ -100,12 +117,14 @@ This is configured in the `docker-compose.yml` file and used by the GitHub Actio
 
 The project uses GitHub Actions for continuous integration. Two workflows are configured:
 
-1. **CI** - Runs unit tests on pull requests and pushes to master
+1. **Unit Tests** - Runs unit tests and linting on pull requests and pushes to master
 2. **Integration Tests** - Runs both unit and integration tests with a MySQL service container
+
+Both workflows run on Node.js versions 18, 20, and 22 to ensure compatibility across supported versions.
 
 ## Pull Request Process
 
-1. Ensure your code passes all tests
+1. Ensure your code passes all tests and linting
 2. Update documentation if necessary
 3. The PR should work in all supported Node.js versions (currently 18, 20, 22)
 4. Your PR will be reviewed by maintainers who may request changes
@@ -116,6 +135,15 @@ The project uses GitHub Actions for continuous integration. Two workflows are co
 - Write tests for new features
 - Keep the code simple and maintainable
 - Document public APIs
+- Run `npm run lint` to check your code against our ESLint rules
+
+## Connection Management
+
+When working on connection management features, be particularly careful about:
+- Properly closing connections to prevent leaks
+- Handling timeouts and error conditions
+- Testing with concurrent connections
+- Ensuring compatibility with serverless environments
 
 ## License
 

@@ -220,19 +220,7 @@ module.exports = (params) => {
         // If no args are passed in a transaction, ignore query
         if (this && this.rollback && args.length === 0) { return resolve([]) }
 
-        // Add a timeout to detect stalled connections
-        const queryTimeout = setTimeout(() => {
-          if (client) {
-            client.destroy() // destroy connection on timeout
-            resetClient() // reset the client
-            reject(new Error('Query timeout - connection stalled'))
-          }
-        }, _cfg.connectTimeout || 30000)
-
         client.query(...args, async (err, results) => {
-          // Clear the timeout
-          clearTimeout(queryTimeout)
-
           if (err && err.code === 'PROTOCOL_SEQUENCE_TIMEOUT') {
             client.destroy() // destroy connection on timeout
             resetClient() // reset the client
