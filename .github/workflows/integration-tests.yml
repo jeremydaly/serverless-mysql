@@ -6,8 +6,10 @@ on:
     branches:
       - master
 
-# This workflow runs integration tests with a MySQL database
-# For more information on contributing and testing, see CONTRIBUTING.md
+# Cancel in-progress runs on new commits to the same PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   integration-test:
@@ -16,22 +18,23 @@ jobs:
       matrix:
         node: [18, 20, 22]
     name: Node ${{ matrix.node }} Integration Tests
+    timeout-minutes: 5
 
     services:
-      # MySQL service container
       mysql:
         image: mysql:8.0
         env:
           MYSQL_ROOT_PASSWORD: password
           MYSQL_DATABASE: test
+          MYSQL_ROOT_HOST: "%"
         ports:
           - 3306:3306
-        # Set health checks to wait until MySQL has started
         options: >-
           --health-cmd="mysqladmin ping"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=3
+          --default-authentication-plugin=mysql_native_password
 
     steps:
       - name: "Checkout latest code"
@@ -53,7 +56,7 @@ jobs:
       - name: Run integration tests
         run: npm run test:integration
         env:
-          MYSQL_HOST: localhost
+          MYSQL_HOST: 127.0.0.1
           MYSQL_PORT: 3306
           MYSQL_DATABASE: test
           MYSQL_USER: root
@@ -63,7 +66,7 @@ jobs:
         if: matrix.node == 22
         run: npm run test-cov
         env:
-          MYSQL_HOST: localhost
+          MYSQL_HOST: 127.0.0.1
           MYSQL_PORT: 3306
           MYSQL_DATABASE: test
           MYSQL_USER: root
