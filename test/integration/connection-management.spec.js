@@ -69,18 +69,16 @@ describe('MySQL Connection Management Tests', function () {
     });
 
     it('should handle query timeouts gracefully', async function () {
-        // Create a connection with a very short query timeout
-        const timeoutDb = createTestConnection({
-            config: {
-                connectTimeout: 1000,
-                // Very short query timeout (50ms)
-                acquireTimeout: 50
-            }
-        });
+        // Create a connection without special timeout settings
+        const timeoutDb = createTestConnection();
 
         try {
             // Try to run a query that will exceed the timeout
-            await timeoutDb.query('SELECT SLEEP(1) as result');
+            // Pass the timeout option directly to the query method (50ms)
+            await timeoutDb.query({
+                sql: 'SELECT SLEEP(1) as result',
+                timeout: 50 // Set a very short timeout for this query
+            });
             // If we get here, the test should fail
             expect.fail('Query should have timed out');
         } catch (error) {

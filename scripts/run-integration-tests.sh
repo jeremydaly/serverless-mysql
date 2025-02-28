@@ -9,19 +9,23 @@ if ! command -v docker &> /dev/null; then
 fi
 
 # Check if Docker Compose is installed
-if ! command -v docker-compose &> /dev/null; then
+if command -v docker-compose &> /dev/null; then
+    DOCKER_COMPOSE="docker-compose"
+elif docker compose version &> /dev/null; then
+    DOCKER_COMPOSE="docker compose"
+else
     echo "Docker Compose is not installed. Please install Docker Compose to run the integration tests."
     exit 1
 fi
 
 # Start MySQL container
 echo "Starting MySQL container..."
-docker-compose up -d
+$DOCKER_COMPOSE up -d
 
 # Wait for MySQL to be ready
 echo "Waiting for MySQL to be ready..."
 for i in {1..30}; do
-    if docker-compose exec -T mysql mysqladmin ping -h localhost -u root -ppassword &> /dev/null; then
+    if $DOCKER_COMPOSE exec -T mysql mysqladmin ping -h localhost -u root -ppassword &> /dev/null; then
         echo "MySQL is ready!"
         break
     fi
@@ -29,7 +33,7 @@ for i in {1..30}; do
     sleep 1
     if [ $i -eq 30 ]; then
         echo "MySQL failed to start within 30 seconds."
-        docker-compose down
+        $DOCKER_COMPOSE down
         exit 1
     fi
 done
@@ -43,7 +47,7 @@ EXIT_CODE=$?
 
 # Stop the MySQL container
 echo "Stopping MySQL container..."
-docker-compose down
+$DOCKER_COMPOSE down
 
 # Exit with the same code as the tests
 exit $EXIT_CODE 
