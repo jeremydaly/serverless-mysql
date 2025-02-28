@@ -11,7 +11,6 @@
     "test:docker": "./scripts/run-all-tests.sh",
     "test": "mocha --check-leaks --recursive test/{unit,integration}/*.spec.js",
     "test-cov": "nyc --reporter=html mocha --check-leaks --recursive test/{unit,integration}/*.spec.js",
-    "test-ci": "nyc npm run test:unit && nyc report --reporter=text-lcov | ./node_modules/coveralls/bin/coveralls.js",
     "lint": "eslint .",
     "prepublishOnly": "npm run lint && npm run test:unit"
   },

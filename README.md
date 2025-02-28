@@ -300,16 +300,18 @@ If the record to `DELETE` doesn't exist, the `UPDATE` will not be performed. If 
 If you're using AWS Lambda with **callbacks**, be sure to set `context.callbackWaitsForEmptyEventLoop = false;` in your main handler. This will allow the freezing of connections and will prevent Lambda from hanging on open connections. See [here](https://www.jeremydaly.com/reuse-database-connections-aws-lambda/) for more information. If you are using `async` functions, this is no longer necessary.
 
 ## Tests
-This module has been extensively tested with various configurations. In performance tests with AWS Lambda and Aurora Serverless (configured with 2 ACUs and 90 available connections), the module successfully handled 500 concurrent users per second with an average response time of 41ms and zero errors.
+I've run *a lot* of tests using a number of different configurations. Ramp ups appear to work best, but once there are several warm containers, the response times are much better. Below is an example test I ran using AWS Lambda and Aurora Serverless. Aurora Serverless was configured with *2 ACUs* (and it didn't autoscale), so there were only **90 connections** available to the MySQL cluster. The Lambda function was configured with 1,024 MB of memory. This test simulated **500 users** per second for one minute. Each user ran a sample query retrieving a few rows from a table.
 
-For information on running the tests yourself, please see [CONTRIBUTING.md](CONTRIBUTING.md).
+From the graph below you can see that the average response time was **41 ms** (min 20 ms, max 3743 ms) with **ZERO** errors.
+
+![Serverless MySQL test - 500 connections per second w/ 90 connections available](https://www.jeremydaly.com/wp-content/uploads/2018/09/serverless-mysql-test-500users-90-connections.png)
+
+Other tests that use larger configurations were extremely successful too, but I'd appreciate other independent tests to verify my assumptions.
+
+## Contributions
+Contributions, ideas and bug reports are welcome and greatly appreciated. Please add [issues](https://github.com/jeremydaly/serverless-mysql/issues) for suggestions and bug reports or create a pull request.
 
 ## TODO
 - Add `changeUser` support
 - Add connection retries on failed queries
-
-## Contributing
-
-Contributions, ideas and bug reports are welcome and greatly appreciated. Please add [issues](https://github.com/jeremydaly/serverless-mysql/issues) for suggestions and bug reports or create a pull request.
-
-For information on how to run tests and contribute to the project, please see [CONTRIBUTING.md](CONTRIBUTING.md).
+- Add automated tests and coverage reports
