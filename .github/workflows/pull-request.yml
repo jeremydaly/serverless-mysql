@@ -6,13 +6,7 @@ on:
     branches:
       - master
 
-# This workflow runs unit tests for the project
-# For integration tests, see integration-tests.yml
-# For more information on contributing, see CONTRIBUTING.md
-
-# Simplified concurrency settings to ensure proper cancellation of in-progress runs
 concurrency:
-  # Using workflow name and PR number/ref_name is sufficient for uniqueness
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref_name }}
   cancel-in-progress: true
 
