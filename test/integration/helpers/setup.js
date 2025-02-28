@@ -13,8 +13,7 @@ function createTestConnection(options = {}) {
         database: process.env.MYSQL_DATABASE || 'serverless_mysql_test',
         user: process.env.MYSQL_USER || 'root',
         password: process.env.MYSQL_PASSWORD || 'password',
-        port: process.env.MYSQL_PORT || 3306,
-        connectTimeout: 30000
+        port: process.env.MYSQL_PORT || 3306
     };
 
     return mysql({
