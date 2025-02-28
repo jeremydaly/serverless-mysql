@@ -6,9 +6,7 @@ on:
     branches:
       - master
 
-# Simplified concurrency settings to ensure proper cancellation of in-progress runs
 concurrency:
-  # Using workflow name and PR number/ref_name is sufficient for uniqueness
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref_name }}
   cancel-in-progress: true
 
@@ -23,13 +21,11 @@ jobs:
 
     services:
       mysql:
-        # Use MySQL 8.0.33 with mysql_native_password authentication
         image: mysql:8.0.33
         env:
           MYSQL_ROOT_PASSWORD: password
           MYSQL_DATABASE: test
           MYSQL_ROOT_HOST: "%"
-          # Configure MySQL 8.0 to use mysql_native_password as default
           MYSQL_AUTHENTICATION_PLUGIN: mysql_native_password
         ports:
           - 3306:3306
