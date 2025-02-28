@@ -62,7 +62,21 @@ async function cleanupTestTable(db, tableName) {
  */
 async function closeConnection(db) {
     if (db) {
-        await db.end();
+        try {
+            // First try to end gracefully
+            await db.end();
+
+            // If there's a _conn property (internal connection), ensure it's destroyed
+            if (db._conn) {
+                db._conn.destroy();
+            }
+        } catch (err) {
+            console.error('Error closing connection:', err);
+            // If ending fails, try to force destroy the connection
+            if (db._conn) {
+                db._conn.destroy();
+            }
+        }
     }
 }
 

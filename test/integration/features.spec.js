@@ -29,11 +29,18 @@ describe('MySQL Features Integration Tests', function () {
     });
 
     after(async function () {
-        // Clean up the test table
-        await cleanupTestTable(db, TEST_TABLE);
+        try {
+            // Clean up the test table
+            await cleanupTestTable(db, TEST_TABLE);
 
-        // Close the connection after tests
-        await closeConnection(db);
+            // Close the connection after tests
+            if (db) {
+                await db.end({ timeout: 5000 }); // Force end with timeout
+                await closeConnection(db);
+            }
+        } catch (err) {
+            console.error('Error during cleanup:', err);
+        }
     });
 
     it('should insert and retrieve data', async function () {

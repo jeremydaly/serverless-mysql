@@ -19,7 +19,14 @@ describe('MySQL Connection Integration Tests', function () {
 
     after(async function () {
         // Close the connection after tests
-        await closeConnection(db);
+        try {
+            if (db) {
+                await db.end({ timeout: 5000 }); // Force end with timeout
+                await closeConnection(db);
+            }
+        } catch (err) {
+            console.error('Error closing connection:', err);
+        }
     });
 
     it('should connect to the database without errors', async function () {

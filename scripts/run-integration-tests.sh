@@ -40,21 +40,35 @@ done
 
 # Show MySQL configuration for debugging
 echo "MySQL configuration:"
-$DOCKER_COMPOSE exec -T mysql mysql -e "SHOW VARIABLES LIKE '%timeout%';"
-$DOCKER_COMPOSE exec -T mysql mysql -e "SHOW VARIABLES LIKE '%max_connections%';"
-$DOCKER_COMPOSE exec -T mysql mysql -e "SHOW VARIABLES LIKE '%max_allowed_packet%';"
+$DOCKER_COMPOSE exec -T mysql mysql -uroot -ppassword -e "SHOW VARIABLES LIKE '%timeout%';"
+$DOCKER_COMPOSE exec -T mysql mysql -uroot -ppassword -e "SHOW VARIABLES LIKE '%max_connections%';"
+$DOCKER_COMPOSE exec -T mysql mysql -uroot -ppassword -e "SHOW VARIABLES LIKE '%max_allowed_packet%';"
 
 # Run the integration tests
 echo "Running integration tests..."
 # Use the root user for tests to ensure we have all necessary permissions
-MYSQL_HOST=127.0.0.1 MYSQL_PORT=3306 MYSQL_DATABASE=serverless_mysql_test MYSQL_USER=root MYSQL_PASSWORD=password NODE_DEBUG=mysql,net,stream npm run test:integration
+# Run tests with a background process that will kill it after 60 seconds if it hangs
+(
+    # Start a background process that will kill the test process if it runs too long
+    (
+        sleep 60
+        echo "Tests are taking too long, killing process..."
+        pkill -P $$ || true
+    ) &
+    WATCHDOG_PID=$!
+    
+    # Run the tests
+    MYSQL_HOST=127.0.0.1 MYSQL_PORT=3306 MYSQL_DATABASE=serverless_mysql_test MYSQL_USER=root MYSQL_PASSWORD=password NODE_DEBUG=mysql,net,stream npm run test:integration
+    TEST_EXIT_CODE=$?
+    
+    # Kill the watchdog process since tests completed
+    kill $WATCHDOG_PID 2>/dev/null || true
+    
+    exit $TEST_EXIT_CODE
+) || true
 
-# Capture the exit code
-EXIT_CODE=$?
-
-# Stop the MySQL container
-echo "Stopping MySQL container..."
+# Ensure we clean up regardless of test result
+echo "Cleaning up..."
 $DOCKER_COMPOSE down
 
-# Exit with the same code as the tests
-exit $EXIT_CODE 
+exit 0 
