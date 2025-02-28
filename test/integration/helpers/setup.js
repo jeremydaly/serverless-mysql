@@ -10,19 +10,17 @@ const mysql = require('../../../index');
 function createTestConnection(options = {}) {
     // Connection configuration from environment variables
     const config = {
-        host: process.env.MYSQL_HOST || 'localhost',
-        port: process.env.MYSQL_PORT || 3306,
-        database: process.env.MYSQL_DATABASE || 'test',
+        host: process.env.MYSQL_HOST || '127.0.0.1',
+        database: process.env.MYSQL_DATABASE || 'serverless_mysql_test',
         user: process.env.MYSQL_USER || 'root',
-        password: process.env.MYSQL_PASSWORD || 'password'
+        password: process.env.MYSQL_PASSWORD || 'password',
+        port: process.env.MYSQL_PORT || 3306,
+        connectTimeout: 30000 // 30 seconds
     };
 
     // Initialize the serverless-mysql instance with default test settings
     return mysql({
         config,
-        // Set a shorter connection timeout for tests
-        connUtilization: 0.8,
-        maxRetries: 3,
         // Override with any provided options
         ...options
     });

@@ -38,10 +38,16 @@ for i in {1..30}; do
     fi
 done
 
+# Show MySQL configuration for debugging
+echo "MySQL configuration:"
+$DOCKER_COMPOSE exec -T mysql mysql -e "SHOW VARIABLES LIKE '%timeout%';"
+$DOCKER_COMPOSE exec -T mysql mysql -e "SHOW VARIABLES LIKE '%max_connections%';"
+$DOCKER_COMPOSE exec -T mysql mysql -e "SHOW VARIABLES LIKE '%max_allowed_packet%';"
+
 # Run the integration tests
 echo "Running integration tests..."
 # Use the root user for tests to ensure we have all necessary permissions
-MYSQL_HOST=127.0.0.1 MYSQL_PORT=3306 MYSQL_DATABASE=test MYSQL_USER=root MYSQL_PASSWORD=password npm run test:integration
+MYSQL_HOST=127.0.0.1 MYSQL_PORT=3306 MYSQL_DATABASE=serverless_mysql_test MYSQL_USER=root MYSQL_PASSWORD=password NODE_DEBUG=mysql,net,stream npm run test:integration
 
 # Capture the exit code
 EXIT_CODE=$?
