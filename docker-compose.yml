@@ -5,9 +5,17 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: test
+      MYSQL_USER: testuser
+      MYSQL_PASSWORD: testpassword
+      # Allow connections from any host
+      MYSQL_ROOT_HOST: "%"
     ports:
       - "3306:3306"
-    command: --default-authentication-plugin=mysql_native_password
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --max_connections=1000
+      --wait_timeout=28800
+      --interactive_timeout=28800
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       timeout: 5s

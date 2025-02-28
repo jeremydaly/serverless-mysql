@@ -40,7 +40,8 @@ done
 
 # Run the integration tests
 echo "Running integration tests..."
-MYSQL_HOST=localhost MYSQL_PORT=3306 MYSQL_DATABASE=test MYSQL_USER=root MYSQL_PASSWORD=password npm run test:integration
+# Use the root user for tests to ensure we have all necessary permissions
+MYSQL_HOST=127.0.0.1 MYSQL_PORT=3306 MYSQL_DATABASE=test MYSQL_USER=root MYSQL_PASSWORD=password npm run test:integration
 
 # Capture the exit code
 EXIT_CODE=$?
