@@ -7,7 +7,6 @@ const NodeURL = require('url')
  * More detail regarding the MySQL module can be found here:
  * https://github.com/mysqljs/mysql
  * @author Jeremy Daly <jeremy@jeremydaly.com>
- * @version 1.5.4
  * @license MIT
  */
 
