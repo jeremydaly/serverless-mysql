@@ -23,10 +23,6 @@ describe('MySQL Connection Management Tests', function () {
     });
 
     it('should handle multiple concurrent connections', async function () {
-        // Skip this test in the integration environment since we're having connection issues
-        this.skip();
-
-        /* Original test code kept for reference
         // Create an array of promises for concurrent queries
         const promises = [];
         const queryCount = 10;
@@ -47,15 +43,9 @@ describe('MySQL Connection Management Tests', function () {
             expect(matchingResult).to.exist;
             expect(matchingResult[0].result).to.equal(0);
         }
-        */
     });
 
     it('should reuse connections efficiently', async function () {
-        // Skip this test in the integration environment since we're having connection issues
-        // This test would be better suited for a unit test with mocks
-        this.skip();
-
-        /* Original test code kept for reference
         // This test verifies that the connection counter works correctly
         // The counter is incremented in the end() method when a connection is reused
 
@@ -84,15 +74,9 @@ describe('MySQL Connection Management Tests', function () {
 
         // Verify that the counter was incremented again
         expect(counterAfterTwoReuses).to.be.greaterThan(counterAfterOneReuse);
-        */
     });
 
     it('should handle query timeouts gracefully', async function () {
-        // Skip this test in the integration environment since we're having connection issues
-        // This test would be better suited for a unit test with mocks
-        this.skip();
-
-        /* Original test code kept for reference
         // Create a connection without special timeout settings
         const timeoutDb = createTestConnection();
 
@@ -112,14 +96,9 @@ describe('MySQL Connection Management Tests', function () {
             // Clean up
             await closeConnection(timeoutDb);
         }
-        */
     });
 
     it('should handle connection errors and retry', async function () {
-        // Skip this test in the integration environment since we're having connection issues
-        this.skip();
-
-        /* Original test code kept for reference
         // This test is more of a simulation since we can't easily force connection errors
         // in a controlled test environment
 
@@ -137,6 +116,5 @@ describe('MySQL Connection Management Tests', function () {
 
         // Clean up
         await closeConnection(retryDb);
-        */
     });
 }); 
