@@ -18,7 +18,18 @@ Please be respectful and considerate of others when contributing to this project
 
 1. Clone the repository
 2. Install dependencies with `npm install`
-3. Run tests with `npm test`
+3. Set up MySQL for testing:
+   - Option 1: Install MySQL locally
+   - Option 2: Use Docker (recommended):
+     ```bash
+     docker compose up -d
+     ```
+4. Run unit tests with `npm run test:unit`
+5. Run integration tests with `npm run test:integration` (requires MySQL)
+6. Or run all tests with Docker handling MySQL automatically:
+   ```bash
+   npm run test:docker
+   ```
 
 ## Running Tests
 
@@ -69,6 +80,20 @@ To run both unit and integration tests:
 ```bash
 npm test
 ```
+
+**Important:** The `npm test` command requires a running MySQL instance, as it runs both unit and integration tests. If you don't have MySQL running, the tests will fail with connection errors. Use one of these approaches:
+
+1. Start MySQL manually before running tests:
+   ```bash
+   docker compose up -d
+   npm test
+   docker compose down
+   ```
+
+2. Use the Docker-managed test script instead, which handles MySQL automatically:
+   ```bash
+   npm run test:docker
+   ```
 
 If you want to run all tests with Docker handling the MySQL database:
 
