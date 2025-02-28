@@ -63,18 +63,54 @@ async function cleanupTestTable(db, tableName) {
 async function closeConnection(db) {
     if (db) {
         try {
-            // First try to end gracefully
-            await db.end();
+            // First try to end gracefully with a short timeout
+            const endPromise = new Promise((resolve) => {
+                const timeout = setTimeout(() => {
+                    console.log('Connection end timed out, forcing destroy');
+                    resolve();
+                }, 1000);
 
-            // If there's a _conn property (internal connection), ensure it's destroyed
+                db.end()
+                    .then(() => {
+                        clearTimeout(timeout);
+                        resolve();
+                    })
+                    .catch((err) => {
+                        console.error('Error ending connection:', err);
+                        clearTimeout(timeout);
+                        resolve();
+                    });
+            });
+
+            await endPromise;
+
+            // Force destroy the internal connection and socket
             if (db._conn) {
+                // Destroy the connection
                 db._conn.destroy();
+
+                // If there's a socket, destroy it too
+                if (db._conn.connection && db._conn.connection.stream) {
+                    db._conn.connection.stream.destroy();
+                }
+            }
+
+            // Reset internal state
+            if (typeof db._reset === 'function') {
+                db._reset();
             }
         } catch (err) {
-            console.error('Error closing connection:', err);
-            // If ending fails, try to force destroy the connection
-            if (db._conn) {
-                db._conn.destroy();
+            console.error('Error in closeConnection:', err);
+            // Last resort - try to destroy everything we can find
+            try {
+                if (db._conn) {
+                    db._conn.destroy();
+                    if (db._conn.connection && db._conn.connection.stream) {
+                        db._conn.connection.stream.destroy();
+                    }
+                }
+            } catch (destroyErr) {
+                console.error('Error destroying connection:', destroyErr);
             }
         }
     }

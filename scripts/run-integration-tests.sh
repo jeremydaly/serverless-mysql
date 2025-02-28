@@ -53,15 +53,25 @@ echo "Running integration tests..."
     (
         sleep 60
         echo "Tests are taking too long, killing process..."
+        # Get all child processes and kill them
         pkill -P $$ || true
+        # If that doesn't work, try more aggressive measures
+        for pid in $(ps -o pid= --ppid $$); do
+            echo "Killing process $pid"
+            kill -9 $pid 2>/dev/null || true
+        done
     ) &
     WATCHDOG_PID=$!
     
-    # Run the tests
+    # Run the tests with NODE_DEBUG to see what's happening
+    echo "Starting tests with process ID: $$"
     MYSQL_HOST=127.0.0.1 MYSQL_PORT=3306 MYSQL_DATABASE=serverless_mysql_test MYSQL_USER=root MYSQL_PASSWORD=password NODE_DEBUG=mysql,net,stream npm run test:integration
     TEST_EXIT_CODE=$?
     
+    echo "Tests completed with exit code: $TEST_EXIT_CODE"
+    
     # Kill the watchdog process since tests completed
+    echo "Killing watchdog process: $WATCHDOG_PID"
     kill $WATCHDOG_PID 2>/dev/null || true
     
     exit $TEST_EXIT_CODE
@@ -70,5 +80,9 @@ echo "Running integration tests..."
 # Ensure we clean up regardless of test result
 echo "Cleaning up..."
 $DOCKER_COMPOSE down
+
+# Make sure no node processes are left hanging
+echo "Checking for hanging Node.js processes..."
+ps aux | grep node | grep -v grep || true
 
 exit 0 

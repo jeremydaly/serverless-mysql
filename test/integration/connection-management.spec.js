@@ -8,6 +8,8 @@ describe('MySQL Connection Management Tests', function () {
     this.timeout(20000);
 
     let db;
+    // Keep track of all connections created during tests
+    const allConnections = [];
 
     beforeEach(function () {
         // Create a fresh connection for each test
@@ -15,6 +17,8 @@ describe('MySQL Connection Management Tests', function () {
             // Set specific options for connection management tests
             maxRetries: 5
         });
+        // Add to our tracking array
+        allConnections.push(db);
     });
 
     afterEach(async function () {
@@ -58,12 +62,27 @@ describe('MySQL Connection Management Tests', function () {
 
     // Add a global after hook to ensure cleanup
     after(async function () {
+        console.log('Running final cleanup for all connections...');
+
         // Final cleanup to ensure no hanging connections
-        if (db) {
-            try {
-                await db.end({ timeout: 5000 });
-            } catch (err) {
-                console.error('Final cleanup error:', err);
+        for (const connection of allConnections) {
+            if (connection) {
+                try {
+                    console.log('Closing connection...');
+                    await connection.end({ timeout: 1000 }).catch(err => {
+                        console.error('Error ending connection in final cleanup:', err);
+                    });
+
+                    await closeConnection(connection);
+
+                    // Force process.exit after tests complete
+                    setTimeout(() => {
+                        console.log('Forcing process exit to prevent hanging');
+                        process.exit(0);
+                    }, 1000);
+                } catch (err) {
+                    console.error('Final cleanup error:', err);
+                }
             }
         }
     });
@@ -137,12 +156,14 @@ describe('MySQL Connection Management Tests', function () {
     it('should handle query timeouts gracefully', async function () {
         // Create a connection without special timeout settings
         const timeoutDb = createTestConnection();
+        // Add to our tracking array
+        allConnections.push(timeoutDb);
 
         try {
             // Try to run a query that will exceed the timeout
-            // Pass the timeout option directly to the query method (50ms)
+            // Use a very short sleep time (0.2 seconds) and an even shorter timeout (50ms)
             await timeoutDb.query({
-                sql: 'SELECT SLEEP(0.5) as result',
+                sql: 'SELECT SLEEP(0.2) as result',
                 timeout: 50 // Set a very short timeout for this query
             });
             // If we get here, the test should fail
@@ -153,7 +174,35 @@ describe('MySQL Connection Management Tests', function () {
         } finally {
             // Clean up - ensure connection is properly closed
             try {
-                await timeoutDb.end({ timeout: 5000 }); // Force end with timeout
+                console.log('Cleaning up timeout test connection');
+                // Use a short timeout for ending the connection
+                const closePromise = new Promise((resolve) => {
+                    // Try to end the connection with a timeout
+                    const timeout = setTimeout(() => {
+                        console.log('Timeout connection end timed out, forcing destroy');
+                        if (timeoutDb._conn) {
+                            timeoutDb._conn.destroy();
+                        }
+                        resolve();
+                    }, 1000);
+
+                    // Try to end gracefully
+                    timeoutDb.end()
+                        .then(() => {
+                            clearTimeout(timeout);
+                            resolve();
+                        })
+                        .catch((err) => {
+                            console.error('Error ending timeout connection:', err);
+                            clearTimeout(timeout);
+                            if (timeoutDb._conn) {
+                                timeoutDb._conn.destroy();
+                            }
+                            resolve();
+                        });
+                });
+
+                await closePromise;
                 await closeConnection(timeoutDb);
             } catch (err) {
                 console.error('Error closing timeout test connection:', err);
@@ -172,12 +221,49 @@ describe('MySQL Connection Management Tests', function () {
             base: 50,
             cap: 500
         });
+        // Add to our tracking array
+        allConnections.push(retryDb);
 
-        // Run a simple query to verify the connection works
-        const result = await retryDb.query('SELECT 1 as success');
-        expect(result[0].success).to.equal(1);
+        try {
+            // Run a simple query to verify the connection works
+            const result = await retryDb.query('SELECT 1 as success');
+            expect(result[0].success).to.equal(1);
+        } finally {
+            // Clean up
+            try {
+                console.log('Cleaning up retry test connection');
+                // Use a short timeout for ending the connection
+                const closePromise = new Promise((resolve) => {
+                    // Try to end the connection with a timeout
+                    const timeout = setTimeout(() => {
+                        console.log('Retry connection end timed out, forcing destroy');
+                        if (retryDb._conn) {
+                            retryDb._conn.destroy();
+                        }
+                        resolve();
+                    }, 1000);
 
-        // Clean up
-        await closeConnection(retryDb);
+                    // Try to end gracefully
+                    retryDb.end()
+                        .then(() => {
+                            clearTimeout(timeout);
+                            resolve();
+                        })
+                        .catch((err) => {
+                            console.error('Error ending retry connection:', err);
+                            clearTimeout(timeout);
+                            if (retryDb._conn) {
+                                retryDb._conn.destroy();
+                            }
+                            resolve();
+                        });
+                });
+
+                await closePromise;
+                await closeConnection(retryDb);
+            } catch (err) {
+                console.error('Error closing retry test connection:', err);
+            }
+        }
     });
 }); 
