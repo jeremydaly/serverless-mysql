@@ -242,8 +242,6 @@ module.exports = (params) => {
           }
           return resolve(results)
         })
-      } else {
-        reject(new Error('No connection available'))
       }
     })
 
