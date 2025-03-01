@@ -36,7 +36,7 @@ module.exports = (params) => {
   // Init setting values
   let MYSQL, manageConns, cap, base, maxRetries, connUtilization, backoff,
     zombieMinTimeout, zombieMaxTimeout, maxConnsFreq, usedConnsFreq,
-    onConnect, onConnectError, onRetry, onClose, onError, onKill, onKillError, PromiseLibrary
+    onConnect, onConnectError, onRetry, onClose, onError, onKill, onKillError, PromiseLibrary, returnFinalSqlQuery
 
   /********************************************************************/
   /**  HELPER/CONVENIENCE FUNCTIONS                                  **/
@@ -219,7 +219,12 @@ module.exports = (params) => {
         // If no args are passed in a transaction, ignore query
         if (this && this.rollback && args.length === 0) { return resolve([]) }
 
-        client.query(...args, async (err, results) => {
+        const queryObj = client.query(...args, async (err, results) => {
+          // If returnFinalSqlQuery is enabled, attach the SQL to the error object
+          if (returnFinalSqlQuery && queryObj.sql && err) {
+            err.sql = queryObj.sql
+          }
+
           if (err && err.code === 'PROTOCOL_SEQUENCE_TIMEOUT') {
             client.destroy() // destroy connection on timeout
             resetClient() // reset the client
@@ -239,6 +244,19 @@ module.exports = (params) => {
             }
             reject(err)
           }
+
+          // If returnFinalSqlQuery is enabled, attach the final SQL to the results
+          if (returnFinalSqlQuery && queryObj.sql) {
+            if (Array.isArray(results)) {
+              Object.defineProperty(results, 'sql', {
+                enumerable: false,
+                value: queryObj.sql
+              })
+            } else if (results && typeof results === 'object') {
+              results.sql = queryObj.sql
+            }
+          }
+
           return resolve(results)
         })
       }
@@ -399,6 +417,7 @@ module.exports = (params) => {
   zombieMaxTimeout = Number.isInteger(cfg.zombieMaxTimeout) ? cfg.zombieMaxTimeout : 60 * 15 // default to 15 minutes
   maxConnsFreq = Number.isInteger(cfg.maxConnsFreq) ? cfg.maxConnsFreq : 15 * 1000 // default to 15 seconds
   usedConnsFreq = Number.isInteger(cfg.usedConnsFreq) ? cfg.usedConnsFreq : 0 // default to 0 ms
+  returnFinalSqlQuery = cfg.returnFinalSqlQuery === true // default to false
 
   // Event handlers
   onConnect = typeof cfg.onConnect === 'function' ? cfg.onConnect : () => { }

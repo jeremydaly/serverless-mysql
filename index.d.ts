@@ -87,6 +87,11 @@ declare namespace serverlessMysql {
      * Integer  The minimum number of seconds that a connection must be idle before the module will recycle it.  3
      */
     zombieMinTimeout?: number;
+    /**
+     * Boolean  Flag indicating whether to attach the final SQL query with substituted values to the results. When enabled, the SQL query will be available as a non-enumerable `sql` property on array results or as a regular property on object results.
+     * This also attaches the SQL query to error objects when a query fails, making it easier to debug.  false
+     */
+    returnFinalSqlQuery?: boolean;
   };
 
   class Transaction {

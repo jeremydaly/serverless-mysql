@@ -39,6 +39,50 @@ exports.handler = async (event, context) => {
 }
 ```
 
+## Logging SQL Queries
+
+You can enable logging of the final SQL query (with all parameter values substituted) by setting the `returnFinalSqlQuery` option to `true`:
+
+```javascript
+// Require and initialize outside of your main handler
+const mysql = require('serverless-mysql')({
+  config: {
+    host     : process.env.ENDPOINT,
+    database : process.env.DATABASE,
+    user     : process.env.USERNAME,
+    password : process.env.PASSWORD
+  },
+  returnFinalSqlQuery: true // Enable SQL query logging
+})
+
+// Main handler function
+exports.handler = async (event, context) => {
+  // Run your query with parameters
+  const results = await mysql.query('SELECT * FROM users WHERE id = ?', [userId])
+  
+  // Access the SQL query with substituted values
+  console.log('Executed query:', results.sql)
+  
+  // Run clean up function
+  await mysql.end()
+
+  // Return the results
+  return results
+}
+```
+
+When `returnFinalSqlQuery` is enabled, the SQL query with substituted values is also attached to error objects when a query fails, making it easier to debug:
+
+```javascript
+try {
+  const results = await mysql.query('SELECT * FROM nonexistent_table')
+} catch (error) {
+  // The error object will have the SQL property
+  console.error('Failed query:', error.sql)
+  console.error('Error message:', error.message)
+}
+```
+
 ## Installation
 ```
 npm i serverless-mysql
@@ -169,6 +213,7 @@ Below is a table containing all of the possible configuration options for `serve
 | usedConnsFreq | `Integer` | The number of milliseconds to cache lookups of current connection usage. | `0` |
 | zombieMaxTimeout | `Integer` | The maximum number of seconds that a connection can stay idle before being recycled. | `900` |
 | zombieMinTimeout | `Integer` | The minimum number of *seconds* that a connection must be idle before the module will recycle it. | `3` |
+| returnFinalSqlQuery | `Boolean` | Flag indicating whether to attach the final SQL query (with substituted values) to the results. When enabled, the SQL query will be available as a non-enumerable `sql` property on array results or as a regular property on object results. | `false` |
 
 ### Connection Backoff
 If `manageConns` is not set to `false`, then this module will automatically kill idle connections or disconnect the current connection if the `connUtilization` limit is reached. Even with this aggressive strategy, it is possible that multiple functions will be competing for available connections. The `backoff` setting uses the strategy outlined [here](https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/) to use *Jitter* instead of *Exponential Backoff* when attempting connection retries.
