@@ -195,10 +195,18 @@ You can also use the `changeUser()` method to change the current database, which
 ```javascript
 // Change to a different database
 await mysql.changeUser({
-  user: mysql.getConfig().user,  // Keep the same user
-  password: mysql.getConfig().password,  // Keep the same password
-  database: 'new_database'  // Change the database
+  database: 'new_database'  // Change the database only
 })
+
+// Now queries will be executed against the new database
+let results = await mysql.query('SELECT * FROM new_database_table')
+```
+
+Alternatively, you can use the standard SQL `USE DATABASE` statement with the `query()` method:
+
+```javascript
+// Change to a different database using SQL
+await mysql.query('USE new_database')
 
 // Now queries will be executed against the new database
 let results = await mysql.query('SELECT * FROM new_database_table')
