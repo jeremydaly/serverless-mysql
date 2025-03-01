@@ -422,3 +422,39 @@ const mysql = require('serverless-mysql')({
   }
 })
 ```
+
+# Serverless MySQL Release Thumbnail Generator
+
+This directory contains tools for generating release thumbnails for the Serverless MySQL project.
+
+## Summary of Tools
+
+| Tool | Description |
+|------|-------------|
+| `create-thumbnail.js` | Basic thumbnail generator with version, features, and announcement customization |
+| `create-thumbnail-advanced.js` | Advanced generator with additional customization for colors, background styles, and text |
+| `generate-release-thumbnails.sh` | Batch generator for creating thumbnails for multiple versions at once |
+| `features.json` | Sample JSON file with features for different versions |
+| `thumbnail-cli.js` | Unified command-line interface for all thumbnail generation tools |
+
+All tools generate PNG images with dimensions of 1200x1200 pixels, suitable for social media posts and release announcements.
+
+## Unified CLI
+
+The `thumbnail-cli.js` script provides a unified command-line interface for all thumbnail generation tools.
+
+```bash
+# Display help
+./thumbnail-cli.js help
+
+# Generate a basic thumbnail
+./thumbnail-cli.js basic --version=2.2.0
+
+# Generate an advanced thumbnail with pattern background
+./thumbnail-cli.js advanced --version=2.2.0 --backgroundStyle=pattern
+
+# Generate thumbnails for multiple versions
+./thumbnail-cli.js batch --versions=2.0.0,2.1.0,2.2.0 --features=features.json
+```
+
+See `./thumbnail-cli.js help` for a complete list of available options.

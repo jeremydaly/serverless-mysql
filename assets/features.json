@@ -1,0 +1,26 @@
+{
+  "2.0.0": [
+    "Initial Serverless Support",
+    "Connection Pooling",
+    "Automatic Reconnection",
+    "Promise-based API"
+  ],
+  "2.1.0": [
+    "Query Retries with Backoff Strategies",
+    "SQL Logging with Parameter Substitution",
+    "User Switching for Different Permissions",
+    "Comprehensive Integration Tests"
+  ],
+  "2.2.0": [
+    "Enhanced Query Retries",
+    "Improved SQL Logging",
+    "Better Connection Management",
+    "New Event Handlers"
+  ],
+  "3.0.0": [
+    "Complete TypeScript Rewrite",
+    "Advanced Connection Pooling",
+    "Serverless Function Optimization",
+    "Comprehensive Documentation"
+  ]
+} 
