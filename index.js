@@ -445,23 +445,61 @@ module.exports = (params) => {
   const commit = async (queries, rollback) => {
 
     let results = [] // keep track of results
+    let transactionStarted = false
 
-    // Start a transaction
-    await query('START TRANSACTION')
+    try {
+      // Start a transaction
+      await query('START TRANSACTION')
+      transactionStarted = true
 
-    // Loop through queries
-    for (let i = 0; i < queries.length; i++) {
-      // Execute the queries, pass the rollback as context
-      let result = await query.apply({ rollback }, queries[i](results[results.length - 1], results))
-      // Add the result to the main results accumulator
-      results.push(result)
+      // Loop through queries
+      for (let i = 0; i < queries.length; i++) {
+        try {
+          // Get the query arguments by calling the function
+          const queryArgs = queries[i](results[results.length - 1], results)
+
+          // If queryArgs is null or undefined, skip this query
+          if (queryArgs === null || queryArgs === undefined) {
+            continue
+          }
+
+          // Execute the queries, pass the rollback as context
+          let result = await query.apply({ rollback }, queryArgs)
+          // Add the result to the main results accumulator
+          results.push(result)
+        } catch (err) {
+          // If there's a JavaScript error in the query function, roll back and rethrow
+          if (transactionStarted) {
+            await query('ROLLBACK')
+          }
+          throw err
+        }
+      }
+
+      // Commit our transaction
+      await query('COMMIT')
+
+      // Return the results
+      return results
+    } catch (err) {
+      // If there's an error during the transaction, roll back if needed
+      if (transactionStarted) {
+        try {
+          await query('ROLLBACK')
+        } catch (rollbackErr) {
+          // If rollback fails, log it but throw the original error
+          onError(rollbackErr)
+        }
+      }
+
+      // Call the rollback handler if provided
+      if (typeof rollback === 'function') {
+        rollback(err)
+      }
+
+      // Rethrow the original error
+      throw err
     }
-
-    // Commit our transaction
-    await query('COMMIT')
-
-    // Return the results
-    return results
   }
 
 

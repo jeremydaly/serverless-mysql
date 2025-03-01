@@ -383,6 +383,23 @@ let results = await mysql.transaction()
 
 If the record to `DELETE` doesn't exist, the `UPDATE` will not be performed. If the `UPDATE` fails, the `DELETE` will be rolled back.
 
+JavaScript errors thrown inside query functions will also trigger a rollback. For example:
+
+```javascript
+let results = await mysql.transaction()
+  .query('INSERT INTO table (x) VALUES(?)', [1])
+  .query(() => {
+    if (someCondition) {
+      throw new Error('Invalid condition'); // This will trigger a rollback
+    }
+    return ['UPDATE table SET x = 1'];
+  })
+  .rollback(e => { /* do something with the error */ }) // optional
+  .commit() // execute the queries
+```
+
+If `someCondition` is true, the error will be thrown, the transaction will be rolled back, and no queries will be executed.
+
 **NOTE:** Transaction support is designed for InnoDB tables (default). Other table types may not behave as expected.
 
 ## Reusing Persistent Connections
