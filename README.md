@@ -249,7 +249,7 @@ Below is a table containing all of the possible configuration options for `serve
 | zombieMaxTimeout | `Integer` | The maximum number of seconds that a connection can stay idle before being recycled. | `900` |
 | zombieMinTimeout | `Integer` | The minimum number of *seconds* that a connection must be idle before the module will recycle it. | `3` |
 | returnFinalSqlQuery | `Boolean` | Flag indicating whether to attach the final SQL query (with substituted values) to the results. When enabled, the SQL query will be available as a non-enumerable `sql` property on array results or as a regular property on object results. | `false` |
-| maxQueryRetries | `Integer` | Maximum number of times to retry a query before giving up. | `3` |
+| maxQueryRetries | `Integer` | Maximum number of times to retry a query before giving up. | `0` |
 | queryRetryBackoff | `String` or `Function` | Backoff algorithm to be used when retrying queries. Possible values are `full` and `decorrelated`, or you can also specify your own algorithm. See [Connection Backoff](#connection-backoff) for more information. | `full` |
 | onQueryRetry | `function` | [Event](#events) callback when queries are retried. | |
 
@@ -403,7 +403,9 @@ Contributions, ideas and bug reports are welcome and greatly appreciated. Please
 ## Query Retries
 The module supports automatic retries for transient query errors. When a query fails with a retryable error (such as deadlocks, timeouts, or connection issues), the module will automatically retry the query using the configured backoff strategy.
 
-You can configure the maximum number of retries with the `maxQueryRetries` option (default: 3) and the backoff strategy with the `queryRetryBackoff` option (default: 'full'). The module will use the same backoff algorithms as for connection retries.
+By default, query retries are disabled (maxQueryRetries = 0) for backward compatibility with previous versions. To enable this feature, set `maxQueryRetries` to a value greater than 0.
+
+You can configure the maximum number of retries with the `maxQueryRetries` option (default: 0) and the backoff strategy with the `queryRetryBackoff` option (default: 'full'). The module will use the same backoff algorithms as for connection retries.
 
 ```javascript
 const mysql = require('serverless-mysql')({
@@ -413,7 +415,7 @@ const mysql = require('serverless-mysql')({
     user: process.env.USERNAME,
     password: process.env.PASSWORD
   },
-  maxQueryRetries: 5,
+  maxQueryRetries: 5, // Enable query retries with 5 maximum attempts
   queryRetryBackoff: 'decorrelated',
   onQueryRetry: (err, retries, delay, type) => {
     console.log(`Retrying query after error: ${err.code}, attempt: ${retries}, delay: ${delay}ms`)

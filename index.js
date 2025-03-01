@@ -489,7 +489,7 @@ module.exports = (params) => {
   returnFinalSqlQuery = cfg.returnFinalSqlQuery === true // default to false
 
   // Query retry settings
-  maxQueryRetries = Number.isInteger(cfg.maxQueryRetries) ? cfg.maxQueryRetries : 3 // default to 3 attempts
+  maxQueryRetries = Number.isInteger(cfg.maxQueryRetries) ? cfg.maxQueryRetries : 0 // default to 0 attempts (disabled for backward compatibility)
   queryRetryBackoff = typeof cfg.queryRetryBackoff === 'function' ? cfg.queryRetryBackoff :
     cfg.queryRetryBackoff && ['full', 'decorrelated'].includes(cfg.queryRetryBackoff.toLowerCase()) ?
       cfg.queryRetryBackoff.toLowerCase() : 'full' // default to full Jitter

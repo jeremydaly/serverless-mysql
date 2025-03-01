@@ -93,7 +93,7 @@ declare namespace serverlessMysql {
      */
     returnFinalSqlQuery?: boolean;
     /**
-     * Integer  Maximum number of times to retry a query before giving up.  3
+     * Integer  Maximum number of times to retry a query before giving up.  0
      */
     maxQueryRetries?: number;
     /**
