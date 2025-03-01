@@ -262,6 +262,38 @@ module.exports = (params) => {
 
   } // end query
 
+  // Change user method
+  const changeUser = async (options) => {
+    // Ensure we have a connection
+    await connect()
+
+    // Return a new promise
+    return new PromiseLibrary((resolve, reject) => {
+      if (client !== null) {
+        // Call the underlying changeUser method
+        client.changeUser(options, (err) => {
+          if (err) {
+            // If connection error, reset client and reject
+            if (err.code === 'PROTOCOL_CONNECTION_LOST' ||
+              err.code === 'EPIPE' ||
+              err.code === 'ECONNRESET') {
+              resetClient() // reset the client
+              reject(err)
+            } else {
+              // For other errors, just reject
+              reject(err)
+            }
+          } else {
+            // Successfully changed user
+            resolve(true)
+          }
+        })
+      } else {
+        // No client connection exists
+        reject(new Error('No connection available to change user'))
+      }
+    })
+  } // end changeUser
 
   // Get the max connections (either for this user or total)
   const getMaxConnections = async () => {
@@ -459,7 +491,8 @@ module.exports = (params) => {
     getCounter,
     getClient,
     getConfig,
-    getErrorCount
+    getErrorCount,
+    changeUser
   }
 
 } // end exports

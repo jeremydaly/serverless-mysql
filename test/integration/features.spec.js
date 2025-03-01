@@ -126,4 +126,66 @@ describe('MySQL Features Integration Tests', function () {
             expect(result[0].result).to.equal(0);
         });
     });
+
+    it('should support changing database with USE statement', async function () {
+        // Create a test database for this test
+        const testDbName = 'serverless_mysql_test_db_' + Date.now().toString().slice(-6);
+
+        try {
+            // Create a new test database
+            await db.query(`CREATE DATABASE IF NOT EXISTS ${testDbName}`);
+
+            // Get current database
+            const initialDbResult = await db.query('SELECT DATABASE() AS db');
+            const initialDb = initialDbResult[0].db;
+
+            // Change to the new database using USE statement
+            await db.query(`USE ${testDbName}`);
+
+            // Verify database was changed
+            const newDbResult = await db.query('SELECT DATABASE() AS db');
+            const newDb = newDbResult[0].db;
+
+            // Verify the database was changed
+            expect(newDb).to.equal(testDbName);
+            expect(newDb).to.not.equal(initialDb);
+
+            // Create a test table in the new database
+            await db.query(`
+                CREATE TABLE IF NOT EXISTS use_test_table (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    name VARCHAR(50) NOT NULL
+                )
+            `);
+
+            // Insert data into the test table
+            await db.query(`INSERT INTO use_test_table (name) VALUES ('use_test')`);
+
+            // Query the data to verify it works
+            const result = await db.query('SELECT * FROM use_test_table');
+            expect(result).to.be.an('array');
+            expect(result).to.have.lengthOf(1);
+            expect(result[0].name).to.equal('use_test');
+
+            // Change back to the original database
+            await db.query(`USE ${initialDb}`);
+
+            // Verify we're back to the original database
+            const finalDbResult = await db.query('SELECT DATABASE() AS db');
+            expect(finalDbResult[0].db).to.equal(initialDb);
+
+        } catch (error) {
+            // Rethrow the error after cleanup
+            throw error;
+        } finally {
+            // Clean up - drop the test database
+            try {
+                // Make sure we're not using the database we're trying to drop
+                await db.query(`USE ${db.getConfig().database}`);
+                await db.query(`DROP DATABASE IF EXISTS ${testDbName}`);
+            } catch (cleanupError) {
+                console.error('Error during cleanup:', cleanupError);
+            }
+        }
+    });
 }); 
