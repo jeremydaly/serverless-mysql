@@ -220,7 +220,6 @@ module.exports = (params) => {
         if (this && this.rollback && args.length === 0) { return resolve([]) }
 
         const queryObj = client.query(...args, async (err, results) => {
-          // If returnFinalSqlQuery is enabled, attach the SQL to the error object
           if (returnFinalSqlQuery && queryObj.sql && err) {
             err.sql = queryObj.sql
           }
@@ -245,7 +244,6 @@ module.exports = (params) => {
             reject(err)
           }
 
-          // If returnFinalSqlQuery is enabled, attach the final SQL to the results
           if (returnFinalSqlQuery && queryObj.sql) {
             if (Array.isArray(results)) {
               Object.defineProperty(results, 'sql', {
