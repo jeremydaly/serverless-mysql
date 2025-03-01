@@ -4,10 +4,14 @@ const mysql = require('../../../index');
 
 /**
  * Creates a MySQL connection for testing
- * @param {Object} options - Additional options for the MySQL connection
+ * @param {Object|string} options - Additional options for the MySQL connection or a connection string
  * @returns {Object} The MySQL connection object
  */
 function createTestConnection(options = {}) {
+    if (typeof options === 'string') {
+        return mysql(options);
+    }
+
     const config = {
         host: process.env.MYSQL_HOST || '127.0.0.1',
         database: process.env.MYSQL_DATABASE || 'serverless_mysql_test',
@@ -20,6 +24,30 @@ function createTestConnection(options = {}) {
         config,
         ...options
     });
+}
+
+/**
+ * Creates a connection string from environment variables or defaults
+ * @param {Object} additionalParams - Additional URL parameters to include
+ * @returns {string} The connection string
+ */
+function createTestConnectionString(additionalParams = {}) {
+    const host = process.env.MYSQL_HOST || '127.0.0.1';
+    const database = process.env.MYSQL_DATABASE || 'serverless_mysql_test';
+    const user = process.env.MYSQL_USER || 'root';
+    const password = process.env.MYSQL_PASSWORD || 'password';
+    const port = process.env.MYSQL_PORT || 3306;
+
+    let connectionString = `mysql://${user}:${password}@${host}:${port}/${database}`;
+
+    if (Object.keys(additionalParams).length > 0) {
+        connectionString += '?';
+        connectionString += Object.entries(additionalParams)
+            .map(([key, value]) => `${key}=${value}`)
+            .join('&');
+    }
+
+    return connectionString;
 }
 
 /**
@@ -106,6 +134,7 @@ async function closeConnection(db) {
 
 module.exports = {
     createTestConnection,
+    createTestConnectionString,
     setupTestTable,
     cleanupTestTable,
     closeConnection
