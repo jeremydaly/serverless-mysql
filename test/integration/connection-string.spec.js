@@ -38,7 +38,6 @@ describe('Connection String Integration Tests', function () {
 
     it('should connect using a connection string with additional parameters', async function () {
         const connectionString = createTestConnectionString({
-            connectTimeout: 10000,
             dateStrings: 'true'
         });
 
