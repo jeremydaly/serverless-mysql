@@ -2,6 +2,13 @@
 
 # Script to run integration tests locally
 
+# Check if debug mode is enabled
+DEBUG_ENV=""
+if [ "$1" = "debug" ]; then
+    DEBUG_ENV="NODE_DEBUG=mysql,net,stream"
+    echo "Debug mode enabled. Debug logs will be displayed."
+fi
+
 # Check if Docker is installed
 if ! command -v docker &> /dev/null; then
     echo "Docker is not installed. Please install Docker to run the integration tests."
@@ -38,17 +45,46 @@ for i in {1..30}; do
     fi
 done
 
+# Add a more robust check to ensure MySQL is fully ready for connections
+echo "Verifying MySQL connection stability..."
+connection_success=false
+for i in {1..5}; do
+    echo "Connection test $i/5..."
+    if ! $DOCKER_COMPOSE exec -T mysql mysql -uroot -ppassword -e "SELECT 1;" &> /dev/null; then
+        echo "MySQL connection test failed. Waiting a bit longer..."
+        sleep 2
+    else
+        echo "Connection test successful."
+        connection_success=true
+        break
+    fi
+done
+
+if [ "$connection_success" = false ]; then
+    echo "Warning: All connection tests failed. Proceeding anyway, but tests might fail."
+fi
+
+# Final stabilization delay
+echo "Waiting for MySQL to stabilize..."
+sleep 5
+
 # Show MySQL configuration for debugging
-echo "MySQL configuration:"
-$DOCKER_COMPOSE exec -T mysql mysql -uroot -ppassword -e "SHOW VARIABLES LIKE '%timeout%';"
-$DOCKER_COMPOSE exec -T mysql mysql -uroot -ppassword -e "SHOW VARIABLES LIKE '%max_connections%';"
-$DOCKER_COMPOSE exec -T mysql mysql -uroot -ppassword -e "SHOW VARIABLES LIKE '%max_allowed_packet%';"
+if [ "$1" = "debug" ]; then
+    echo "MySQL configuration:"
+    $DOCKER_COMPOSE exec -T mysql mysql -uroot -ppassword -e "SHOW VARIABLES LIKE '%timeout%';"
+    $DOCKER_COMPOSE exec -T mysql mysql -uroot -ppassword -e "SHOW VARIABLES LIKE '%max_connections%';"
+    $DOCKER_COMPOSE exec -T mysql mysql -uroot -ppassword -e "SHOW VARIABLES LIKE '%max_allowed_packet%';"
+fi
+
+# Prepare the database for tests
+echo "Preparing test database..."
+$DOCKER_COMPOSE exec -T mysql mysql -uroot -ppassword -e "DROP DATABASE IF EXISTS serverless_mysql_test; CREATE DATABASE serverless_mysql_test;"
 
 # Run the integration tests
 echo "Running integration tests..."
 (
     (
-        sleep 60
+        sleep 90  # Increased timeout for tests
         echo "Tests are taking too long, killing process..."
         pkill -P $$ || true
         for pid in $(ps -o pid= --ppid $$); do
@@ -58,13 +94,28 @@ echo "Running integration tests..."
     ) &
     WATCHDOG_PID=$!
     
-    echo "Starting tests with process ID: $$"
-    MYSQL_HOST=127.0.0.1 MYSQL_PORT=3306 MYSQL_DATABASE=serverless_mysql_test MYSQL_USER=root MYSQL_PASSWORD=password NODE_DEBUG=mysql,net,stream npm run test:integration
+    if [ "$1" = "debug" ]; then
+        echo "Starting tests with process ID: $$"
+    fi
+    
+    # Add connection retry parameters to MySQL connection
+    MYSQL_HOST=127.0.0.1 \
+    MYSQL_PORT=3306 \
+    MYSQL_DATABASE=serverless_mysql_test \
+    MYSQL_USER=root \
+    MYSQL_PASSWORD=password \
+    MYSQL_CONNECT_TIMEOUT=10000 \
+    MYSQL_RETRY_COUNT=3 \
+    env $DEBUG_ENV npm run test:integration
+    
     TEST_EXIT_CODE=$?
     
     echo "Tests completed with exit code: $TEST_EXIT_CODE"
     
-    echo "Killing watchdog process: $WATCHDOG_PID"
+    if [ "$1" = "debug" ]; then
+        echo "Killing watchdog process: $WATCHDOG_PID"
+    fi
+    
     kill $WATCHDOG_PID 2>/dev/null || true
     
     exit $TEST_EXIT_CODE
@@ -75,7 +126,9 @@ echo "Cleaning up..."
 $DOCKER_COMPOSE down
 
 # Make sure no node processes are left hanging
-echo "Checking for hanging Node.js processes..."
-ps aux | grep node | grep -v grep || true
+if [ "$1" = "debug" ]; then
+    echo "Checking for hanging Node.js processes..."
+    ps aux | grep node | grep -v grep || true
+fi
 
 exit 0 
