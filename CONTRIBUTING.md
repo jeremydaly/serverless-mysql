@@ -123,7 +123,12 @@ This will generate an HTML coverage report in the `coverage` directory.
 
 ## Integration Test Environment
 
-The integration tests use a MySQL 8.0 container with the following configuration:
+The integration tests support multiple MySQL versions in the CI environment to ensure compatibility across different database environments. The GitHub Actions workflow is configured to test against:
+
+- MySQL 5 (latest in the 5.x series)
+- MySQL LTS (Long Term Support version)
+
+For local development, the `docker-compose.yml` file includes a single MySQL service using the `mysql:lts` image to ensure we always test against the most recent Long Term Support version. The connection details are:
 
 - Host: 127.0.0.1
 - Port: 3306
@@ -131,12 +136,22 @@ The integration tests use a MySQL 8.0 container with the following configuration
 - User: root
 - Password: password
 
+```bash
+# Start MySQL container
+docker compose up -d
+
+# Run integration tests
+npm run test:integration
+
+# Stop MySQL container when done
+docker compose down
+```
+
 The MySQL container is configured with:
-- Native password authentication
 - 1000 max connections
 - Extended wait timeout (28800 seconds)
 
-This is configured in the `docker-compose.yml` file and used by the GitHub Actions workflow for CI.
+The GitHub Actions workflow runs integration tests against both MySQL versions to ensure compatibility.
 
 ## Continuous Integration
 

@@ -77,16 +77,30 @@ describe('MySQL changeUser Integration Tests', function () {
 
     it('should handle errors when changing to non-existent user', async function () {
         try {
+            const nonExistentUser = 'non_existent_user_' + Date.now();
             await db.changeUser({
-                user: 'non_existent_user_' + Date.now(),
+                user: nonExistentUser,
                 password: 'wrong_password'
             });
 
             expect.fail('Should have thrown an error');
         } catch (error) {
             expect(error).to.be.an('error');
-            expect(error).to.have.property('code');
-            expect(error.message).to.include('Access denied for user', 'Error message should indicate access was denied');
+
+            // In MySQL 8.4+ (LTS), the mysql_native_password plugin is not loaded by default
+            // In older MySQL versions, we get an access denied error
+            expect(error.code).to.be.oneOf([
+                'ER_ACCESS_DENIED_ERROR',  // Older MySQL versions
+                'ER_PLUGIN_IS_NOT_LOADED'  // MySQL 8.4+ (LTS)
+            ]);
+
+            if (error.code === 'ER_PLUGIN_IS_NOT_LOADED') {
+                expect(error.message).to.include('Plugin');
+                expect(error.message).to.include('mysql_native_password');
+                expect(error.message).to.include('not loaded');
+            } else {
+                expect(error.message).to.include('Access denied for user');
+            }
         }
     });
 

@@ -16,12 +16,13 @@ jobs:
     strategy:
       matrix:
         node: [18, 20, 22]
-    name: Node ${{ matrix.node }} Integration Tests
+        mysql: ["5", "lts"]
+    name: Node ${{ matrix.node }} with MySQL ${{ matrix.mysql }} Integration Tests
     timeout-minutes: 5
 
     services:
       mysql:
-        image: mysql:8.0.33
+        image: mysql:${{ matrix.mysql }}
         env:
           MYSQL_ROOT_PASSWORD: password
           MYSQL_DATABASE: serverless_mysql_test
@@ -61,7 +62,7 @@ jobs:
           MYSQL_PASSWORD: password
 
       - name: Run all tests with coverage
-        if: matrix.node == 22
+        if: matrix.node == 22 && matrix.mysql == 'lts'
         run: npm run test-cov
         env:
           MYSQL_HOST: 127.0.0.1
