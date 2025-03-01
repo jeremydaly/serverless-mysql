@@ -114,6 +114,7 @@ declare namespace serverlessMysql {
     getClient(): MySQL.Connection;
     getConfig(): MySQL.ConnectionOptions;
     getErrorCount(): number;
+    changeUser(options: MySQL.ConnectionOptions): Promise<boolean>;
   };
 }
 

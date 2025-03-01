@@ -177,6 +177,41 @@ let connection = mysql.getClient()
 let value = connection.escape('Some value to be escaped')
 ```
 
+You can change the user of an existing connection using the `changeUser()` method. This is useful when you need to switch to a different MySQL user with different permissions.
+
+```javascript
+// Change to a different user
+await mysql.changeUser({
+  user: 'newuser',
+  password: 'newpassword'
+})
+
+// Now queries will be executed as the new user
+let results = await mysql.query('SELECT * FROM restricted_table')
+```
+
+You can also use the `changeUser()` method to change the current database, which is equivalent to the `USE DATABASE` SQL statement:
+
+```javascript
+// Change to a different database
+await mysql.changeUser({
+  database: 'new_database'  // Change the database only
+})
+
+// Now queries will be executed against the new database
+let results = await mysql.query('SELECT * FROM new_database_table')
+```
+
+Alternatively, you can use the standard SQL `USE DATABASE` statement with the `query()` method:
+
+```javascript
+// Change to a different database using SQL
+await mysql.query('USE new_database')
+
+// Now queries will be executed against the new database
+let results = await mysql.query('SELECT * FROM new_database_table')
+```
+
 ## Configuration Options
 
 There are two ways to provide a configuration.
@@ -357,6 +392,4 @@ Other tests that use larger configurations were extremely successful too, but I'
 Contributions, ideas and bug reports are welcome and greatly appreciated. Please add [issues](https://github.com/jeremydaly/serverless-mysql/issues) for suggestions and bug reports or create a pull request.
 
 ## TODO
-- Add `changeUser` support
 - Add connection retries on failed queries
-- Add automated tests and coverage reports
