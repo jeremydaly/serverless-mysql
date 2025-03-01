@@ -73,7 +73,7 @@ describe("Test a connection config", () => {
   });
 
   it("Should parse additional parameters from connection string", () => {
-    const db = mysql("mysql://user:password@localhost:3306/database?dateStrings=true");
+    const db = mysql("mysql://user:password@localhost:3306/database?connectTimeout=10000&dateStrings=true");
     const config = db.getConfig();
 
     assert.strictEqual(config.host, "localhost");
@@ -81,6 +81,7 @@ describe("Test a connection config", () => {
     assert.strictEqual(config.user, "user");
     assert.strictEqual(config.password, "password");
     assert.strictEqual(config.port, 3306);
+    assert.strictEqual(config.connectTimeout, "10000");
     assert.strictEqual(config.dateStrings, "true");
   });
 });
