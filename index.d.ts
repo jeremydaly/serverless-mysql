@@ -92,6 +92,18 @@ declare namespace serverlessMysql {
      * This also attaches the SQL query to error objects when a query fails, making it easier to debug.  false
      */
     returnFinalSqlQuery?: boolean;
+    /**
+     * Integer  Maximum number of times to retry a query before giving up.  3
+     */
+    maxQueryRetries?: number;
+    /**
+     * String or Function  Backoff algorithm to be used when retrying queries. Possible values are full and decorrelated, or you can also specify your own algorithm.  full
+     */
+    queryRetryBackoff?: string | Function;
+    /**
+     * function  Event callback when queries are retried.
+     */
+    onQueryRetry?: Function;
   };
 
   class Transaction {
