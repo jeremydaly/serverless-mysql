@@ -30,7 +30,7 @@ declare namespace serverlessMysql {
     /**
      * Object  A mysql configuration object as defined here or a connection string  {}
      */
-    config?: MySQL.ConnectionOptions | string;
+    config?: string | MySQL.ConnectionOptions;
     /**
      * Number  The percentage of total connections to use when connecting to your MySQL server. A value of 0.75 would use 75% of your total available connections.  0.8
      */
