@@ -411,7 +411,10 @@ module.exports = (params) => {
 
   let connCfg = {}
 
-  if (typeof cfg.config === 'object' && !Array.isArray(cfg.config)) {
+  const isConfigAnObject = typeof cfg.config === 'object' && !Array.isArray(cfg.config)
+  const isConfigAString = typeof cfg.config === 'string'
+
+  if (isConfigAnObject || isConfigAString) {
     connCfg = cfg.config
   } else if (typeof params === 'string') {
     connCfg = params

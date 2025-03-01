@@ -54,4 +54,21 @@ describe('Connection String Integration Tests', function () {
             throw error;
         }
     });
+
+    it('should connect using a connection string as part of sls-mysql.config property', async function () {
+        const connectionString = createTestConnectionString();
+        db = mysql({
+            config: connectionString
+        })
+
+        try {
+            const result = await db.query('SELECT 1 AS value');
+            expect(result).to.be.an('array');
+            expect(result).to.have.lengthOf(1);
+            expect(result[0]).to.have.property('value', 1);
+        } catch (error) {
+            console.error('Connection error:', error);
+            throw error;
+        }
+    });
 }); 
