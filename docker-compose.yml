@@ -1,6 +1,6 @@
 services:
   mysql:
-    image: mysql:8.0.41
+    image: mysql:lts
     container_name: serverless-mysql-test-db
     environment:
       MYSQL_ROOT_PASSWORD: password

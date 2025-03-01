@@ -125,10 +125,10 @@ This will generate an HTML coverage report in the `coverage` directory.
 
 The integration tests support multiple MySQL versions in the CI environment to ensure compatibility across different database environments. The GitHub Actions workflow is configured to test against:
 
-- MySQL 5.7.44 (latest in the 5.x series)
-- MySQL 8.0.41 (latest in the 8.x series)
+- MySQL 5 (latest in the 5.x series)
+- MySQL LTS (Long Term Support version)
 
-For local development, the `docker-compose.yml` file includes a single MySQL 8.0.41 service with the following connection details:
+For local development, the `docker-compose.yml` file includes a single MySQL service using the `mysql:lts` image to ensure we always test against the most recent Long Term Support version. The connection details are:
 
 - Host: 127.0.0.1
 - Port: 3306
