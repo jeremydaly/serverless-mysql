@@ -91,7 +91,7 @@ describe('Return Final SQL Query Integration Tests', function () {
         );
 
         expect(insertResult).to.have.property('sql');
-        const expectedInsertSql = `INSERT INTO \`${TEST_TABLE}\` (name, active, created_at) VALUES ('Date User', true, '2020-01-01 02:00:00.000')`;
+        const expectedInsertSql = `INSERT INTO \`${TEST_TABLE}\` (name, active, created_at) VALUES ('Date User', true, '2020-01-01 00:00:00.000')`;
         expect(insertResult.sql).to.equal(expectedInsertSql);
 
         const selectResult = await db.query(
