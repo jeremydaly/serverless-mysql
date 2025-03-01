@@ -148,7 +148,6 @@ docker compose down
 ```
 
 The MySQL container is configured with:
-- Native password authentication
 - 1000 max connections
 - Extended wait timeout (28800 seconds)
 

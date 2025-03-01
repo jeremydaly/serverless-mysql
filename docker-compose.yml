@@ -13,7 +13,6 @@ services:
     ports:
       - "3306:3306"
     command: >
-      --default-authentication-plugin=mysql_native_password
       --max_connections=1000
       --wait_timeout=28800
     healthcheck:

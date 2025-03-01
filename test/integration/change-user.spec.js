@@ -77,16 +77,22 @@ describe('MySQL changeUser Integration Tests', function () {
 
     it('should handle errors when changing to non-existent user', async function () {
         try {
+            const nonExistentUser = 'non_existent_user_' + Date.now();
             await db.changeUser({
-                user: 'non_existent_user_' + Date.now(),
+                user: nonExistentUser,
                 password: 'wrong_password'
             });
 
             expect.fail('Should have thrown an error');
         } catch (error) {
             expect(error).to.be.an('error');
-            expect(error).to.have.property('code');
-            expect(error.message).to.include('Access denied for user', 'Error message should indicate access was denied');
+
+            // Check for the specific error code
+            expect(error.code).to.equal('ER_ACCESS_DENIED_ERROR');
+
+            // Check for the specific error message pattern
+            expect(error.message).to.include('Access denied for user');
+            expect(error.message).to.include('using password: YES');
         }
     });
 
