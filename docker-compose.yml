@@ -9,6 +9,7 @@ services:
       MYSQL_PASSWORD: testpassword
       # Allow connections from any host
       MYSQL_ROOT_HOST: "%"
+      TZ: UTC
     ports:
       - "3306:3306"
     command: >

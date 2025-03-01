@@ -99,6 +99,7 @@ echo "Running integration tests..."
     fi
     
     # Add connection retry parameters to MySQL connection
+    TZ=UTC \
     MYSQL_HOST=127.0.0.1 \
     MYSQL_PORT=3306 \
     MYSQL_DATABASE=serverless_mysql_test \
