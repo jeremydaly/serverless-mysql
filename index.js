@@ -33,10 +33,27 @@ module.exports = (params) => {
     'ETIMEDOUT' // if the connection times out
   ]
 
+  // Common Transient Query Errors that can be retried
+  const retryableQueryErrors = [
+    'ER_LOCK_DEADLOCK', // Deadlock found when trying to get lock
+    'ER_LOCK_WAIT_TIMEOUT', // Lock wait timeout exceeded
+    'ER_QUERY_INTERRUPTED', // Query execution was interrupted
+    'ER_QUERY_TIMEOUT', // Query execution time exceeded
+    'ER_CONNECTION_KILLED', // Connection was killed
+    'ER_LOCKING_SERVICE_TIMEOUT', // Locking service timeout
+    'ER_LOCKING_SERVICE_DEADLOCK', // Locking service deadlock
+    'ER_ABORTING_CONNECTION', // Aborted connection
+    'PROTOCOL_CONNECTION_LOST', // Connection lost
+    'PROTOCOL_SEQUENCE_TIMEOUT', // Connection timeout
+    'ETIMEDOUT', // Connection timeout
+    'ECONNRESET' // Connection reset
+  ]
+
   // Init setting values
   let MYSQL, manageConns, cap, base, maxRetries, connUtilization, backoff,
     zombieMinTimeout, zombieMaxTimeout, maxConnsFreq, usedConnsFreq,
-    onConnect, onConnectError, onRetry, onClose, onError, onKill, onKillError, PromiseLibrary, returnFinalSqlQuery
+    onConnect, onConnectError, onRetry, onClose, onError, onKill, onKillError, PromiseLibrary, returnFinalSqlQuery,
+    maxQueryRetries, onQueryRetry, queryRetryBackoff
 
   /********************************************************************/
   /**  HELPER/CONVENIENCE FUNCTIONS                                  **/
@@ -209,57 +226,79 @@ module.exports = (params) => {
 
   // Main query function
   const query = async function (...args) {
-
     // Establish connection
     await connect()
 
-    // Run the query
-    return new PromiseLibrary((resolve, reject) => {
-      if (client !== null) {
-        // If no args are passed in a transaction, ignore query
-        if (this && this.rollback && args.length === 0) { return resolve([]) }
+    // Track query retries
+    let queryRetries = 0
 
-        const queryObj = client.query(...args, async (err, results) => {
-          if (returnFinalSqlQuery && queryObj.sql && err) {
-            err.sql = queryObj.sql
-          }
+    // Function to execute the query with retry logic
+    const executeQuery = async () => {
+      return new PromiseLibrary((resolve, reject) => {
+        if (client !== null) {
+          // If no args are passed in a transaction, ignore query
+          if (this && this.rollback && args.length === 0) { return resolve([]) }
 
-          if (err && err.code === 'PROTOCOL_SEQUENCE_TIMEOUT') {
-            client.destroy() // destroy connection on timeout
-            resetClient() // reset the client
-            reject(err) // reject the promise with the error
-          } else if (
-            err && (/^PROTOCOL_ENQUEUE_AFTER_/.test(err.code)
-              || err.code === 'PROTOCOL_CONNECTION_LOST'
-              || err.code === 'EPIPE'
-              || err.code === 'ECONNRESET')
-          ) {
-            resetClient() // reset the client
-            return resolve(query(...args)) // attempt the query again
-          } else if (err) {
-            if (this && this.rollback) {
-              await query('ROLLBACK')
-              this.rollback(err)
+          const queryObj = client.query(...args, async (err, results) => {
+            if (returnFinalSqlQuery && queryObj.sql && err) {
+              err.sql = queryObj.sql
             }
-            reject(err)
-          }
 
-          if (returnFinalSqlQuery && queryObj.sql) {
-            if (Array.isArray(results)) {
-              Object.defineProperty(results, 'sql', {
-                enumerable: false,
-                value: queryObj.sql
-              })
-            } else if (results && typeof results === 'object') {
-              results.sql = queryObj.sql
+            if (err && err.code === 'PROTOCOL_SEQUENCE_TIMEOUT') {
+              client.destroy() // destroy connection on timeout
+              resetClient() // reset the client
+              reject(err) // reject the promise with the error
+            } else if (
+              err && (/^PROTOCOL_ENQUEUE_AFTER_/.test(err.code)
+                || err.code === 'PROTOCOL_CONNECTION_LOST'
+                || err.code === 'EPIPE'
+                || err.code === 'ECONNRESET')
+            ) {
+              resetClient() // reset the client
+              return resolve(query(...args)) // attempt the query again
+            } else if (err && retryableQueryErrors.includes(err.code) && queryRetries < maxQueryRetries) {
+              // Increment retry counter
+              queryRetries++
+
+              // Calculate backoff time
+              let wait = 0
+              let sleep = queryRetryBackoff === 'decorrelated' ? decorrelatedJitter(wait) :
+                typeof queryRetryBackoff === 'function' ? queryRetryBackoff(wait, queryRetries) :
+                  fullJitter()
+
+              // Fire onQueryRetry event
+              onQueryRetry(err, queryRetries, sleep, typeof queryRetryBackoff === 'function' ? 'custom' : queryRetryBackoff)
+
+              // Wait and retry
+              await delay(sleep)
+              return resolve(executeQuery())
+            } else if (err) {
+              if (this && this.rollback) {
+                await query('ROLLBACK')
+                this.rollback(err)
+              }
+              reject(err)
             }
-          }
 
-          return resolve(results)
-        })
-      }
-    })
+            if (returnFinalSqlQuery && queryObj.sql) {
+              if (Array.isArray(results)) {
+                Object.defineProperty(results, 'sql', {
+                  enumerable: false,
+                  value: queryObj.sql
+                })
+              } else if (results && typeof results === 'object') {
+                results.sql = queryObj.sql
+              }
+            }
 
+            return resolve(results)
+          })
+        }
+      })
+    }
+
+    // Execute the query with retry logic
+    return executeQuery()
   } // end query
 
   // Change user method
@@ -449,6 +488,12 @@ module.exports = (params) => {
   usedConnsFreq = Number.isInteger(cfg.usedConnsFreq) ? cfg.usedConnsFreq : 0 // default to 0 ms
   returnFinalSqlQuery = cfg.returnFinalSqlQuery === true // default to false
 
+  // Query retry settings
+  maxQueryRetries = Number.isInteger(cfg.maxQueryRetries) ? cfg.maxQueryRetries : 0 // default to 0 attempts (disabled for backward compatibility)
+  queryRetryBackoff = typeof cfg.queryRetryBackoff === 'function' ? cfg.queryRetryBackoff :
+    cfg.queryRetryBackoff && ['full', 'decorrelated'].includes(cfg.queryRetryBackoff.toLowerCase()) ?
+      cfg.queryRetryBackoff.toLowerCase() : 'full' // default to full Jitter
+
   // Event handlers
   onConnect = typeof cfg.onConnect === 'function' ? cfg.onConnect : () => { }
   onConnectError = typeof cfg.onConnectError === 'function' ? cfg.onConnectError : () => { }
@@ -457,6 +502,7 @@ module.exports = (params) => {
   onError = typeof cfg.onError === 'function' ? cfg.onError : () => { }
   onKill = typeof cfg.onKill === 'function' ? cfg.onKill : () => { }
   onKillError = typeof cfg.onKillError === 'function' ? cfg.onKillError : () => { }
+  onQueryRetry = typeof cfg.onQueryRetry === 'function' ? cfg.onQueryRetry : () => { }
 
   let connCfg = {}
 
