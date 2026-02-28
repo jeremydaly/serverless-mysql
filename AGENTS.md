@@ -2,7 +2,7 @@
 
 Node.js wrapper around `mysql2` for serverless environments (AWS Lambda, GCP Cloud Functions, Azure Functions). Single-file library — no build step. Manages connection pooling/reuse, zombie cleanup, exponential backoff, and utilization monitoring.
 
-**Stack:** Node.js (>=8.10), CommonJS, mysql2 ^3.12.0, Mocha + Chai + Sinon + Rewire for testing.
+**Stack:** Node.js (>=8.10), CommonJS, mysql2 ^3.12.0, Mocha for testing (Chai for integration assertions, Node `assert` for unit tests, Sinon for mocks).
 
 ## Commands
 
@@ -14,8 +14,8 @@ npm run test:docker                 # All tests with Docker-managed MySQL
 npm run test-cov                    # Coverage report → coverage/
 
 # Single test file
-TZ=UTC mocha --check-leaks test/unit/connection-config.spec.js
-TZ=UTC mocha --check-leaks test/integration/features.spec.js
+TZ=UTC npx mocha --check-leaks test/unit/connection-config.spec.js
+TZ=UTC npx mocha --check-leaks test/integration/features.spec.js
 
 # Local MySQL for integration tests
 docker compose up -d
@@ -32,7 +32,7 @@ Override via: `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_DATABASE`, `MYSQL_USER`, `MYSQL
 
 ```js
 // Yes
-const result = await mysql.query("SELECT * FROM users");
+const result = await mysql.query('SELECT * FROM users')
 
 // No
 const result = await mysql.query("SELECT * FROM users");
@@ -58,15 +58,14 @@ Two error code lists drive retries:
 
 ## Testing
 
-- `test/unit/` — mock mysql2 with `rewire`; no DB required
+- `test/unit/` — configuration-focused tests using Node's built-in `assert`; no DB required
 - `test/integration/` — real MySQL; uses `test/integration/helpers/setup.js` for connection factory, table setup/teardown
-- `test/unit/helpers/mocks.js` — Sinon-based mock factories
 - All tests run with `TZ=UTC` and `--check-leaks`
 
 ## Git Workflow
 
 - PRs target `master`
-- CI: GitHub Actions on Node 18/20/22 × MySQL 5 & LTS
+- CI: GitHub Actions — unit tests on Node 18/20/22, lint on Node 22, integration tests on Node 18/20/22 × MySQL 5 & LTS
 
 ## Boundaries
 
