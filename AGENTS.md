@@ -32,7 +32,7 @@ Override via: `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_DATABASE`, `MYSQL_USER`, `MYSQL
 
 ```js
 // Yes
-const result = await mysql.query('SELECT * FROM users')
+const result = await mysql.query("SELECT * FROM users");
 
 // No
 const result = await mysql.query("SELECT * FROM users");
@@ -45,12 +45,14 @@ All library code lives in `index.js` (~545 lines). Types in `index.d.ts`.
 `index.js` exports a factory function returning a public API object. Each call creates a closure with mutable state (`client`, `counter`, `errors`, `retries`, `_cfg`, `_maxConns`, `_usedConns`).
 
 Key flows:
+
 - **`connect(wait)`** — connection with exponential backoff retry; checks utilization and kills zombies when thresholds exceeded
 - **`query(...args)`** — query execution with automatic retry on transient errors (`retryableQueryErrors`)
 - **`end()`** — end-of-invocation cleanup; increments reuse counter or destroys connection based on utilization
 - **`commit(queries, rollback)`** — sequential transaction execution with rollback on failure
 
 Two error code lists drive retries:
+
 - `tooManyConnsErrors` — connection-level retries with backoff
 - `retryableQueryErrors` — query-level retries
 
@@ -69,6 +71,7 @@ Two error code lists drive retries:
 ## Boundaries
 
 **Never:**
+
 - Add a build/transpilation step — this is a single-file CommonJS library
 - Introduce callback-style APIs — all async operations return Promises
 - Modify `index.d.ts` types without matching changes in `index.js`
