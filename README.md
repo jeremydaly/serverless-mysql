@@ -101,7 +101,7 @@ npm i serverless-mysql
 - Assume AWS endorsed best practices from [here](https://github.com/aws-samples/aws-appsync-rds-aurora-sample/blob/master/src/lamdaresolver/index.js)
 
 ## How to use this module
-Serverless MySQL wraps the **[mysql](https://github.com/mysqljs/mysql)** module, so this module supports pretty much everything that the `mysql2` module does. It uses all the same [connection options](https://github.com/mysqljs/mysql#connection-options), provides a `query()` method that accepts the same arguments when [performing queries](https://github.com/mysqljs/mysql#performing-queries) (except the callback), and passes back the query results exactly as the `mysql2` module returns them. There are a few things that don't make sense in serverless environments, like streaming rows, so there is no support for that yet.
+Serverless MySQL wraps the **[mysql](https://github.com/mysqljs/mysql)** module, so this module supports pretty much everything that the `mysql2` module does. It uses all the same [connection options](https://github.com/mysqljs/mysql#connection-options), provides a `query()` method that accepts the same arguments when [performing queries](https://github.com/mysqljs/mysql#performing-queries) (except the callback), and passes back the query results exactly as the `mysql2` module returns them. Streaming rows is supported via the mysql2-style `query().stream()` method, but remember that streaming keeps the connection busy until the stream ends.
 
 To use Serverless MySQL, require it **OUTSIDE** your main function handler. This will allow for connection reuse between executions. The module must be initialized before its methods are available. [Configuration options](#configuration-options) must be passed in during initialization.
 
@@ -149,6 +149,21 @@ let results = await query({
   timeout: 10000,
   values: ['serverless']
 })
+```
+
+### Streaming rows
+
+If you need to stream rows (for large result sets), use the mysql2-style `query().stream()` method. It returns a Node.js readable stream and keeps the underlying connection busy until the stream finishes. Make sure you consume the stream and call `end()` afterward. If `returnFinalSqlQuery` is enabled, the stream will include a non-enumerable `sql` property with the final SQL.
+
+```javascript
+const stream = mysql.query('SELECT * FROM table ORDER BY id').stream()
+
+const rows = []
+for await (const row of stream) {
+  rows.push(row)
+}
+
+await mysql.end()
 ```
 
 Once you've run all your queries and your serverless function is ready to return data, call the `end()` method to perform connection management. This will do things like check the current number of connections, clean up zombies, or even disconnect if there are too many connections being used. Be sure to `await` its results before continuing.

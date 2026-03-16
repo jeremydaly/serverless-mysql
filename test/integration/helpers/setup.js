@@ -84,6 +84,8 @@ async function cleanupTestTable(db, tableName) {
  */
 async function closeConnection(db) {
     if (db) {
+        const client = typeof db.getClient === 'function' ? db.getClient() : null;
+
         try {
             const endPromise = new Promise((resolve) => {
                 const timeout = setTimeout(() => {
@@ -105,25 +107,25 @@ async function closeConnection(db) {
 
             await endPromise;
 
-            if (db._conn) {
-                db._conn.destroy();
-
-                if (db._conn.connection && db._conn.connection.stream) {
-                    db._conn.connection.stream.destroy();
-                }
+            if (typeof db.quit === 'function') {
+                db.quit();
             }
 
-            if (typeof db._reset === 'function') {
-                db._reset();
+            if (client && typeof client.destroy === 'function') {
+                client.destroy();
+            }
+
+            if (client && client.connection && client.connection.stream) {
+                client.connection.stream.destroy();
             }
         } catch (err) {
             console.error('Error in closeConnection:', err);
             try {
-                if (db._conn) {
-                    db._conn.destroy();
-                    if (db._conn.connection && db._conn.connection.stream) {
-                        db._conn.connection.stream.destroy();
-                    }
+                if (client && typeof client.destroy === 'function') {
+                    client.destroy();
+                }
+                if (client && client.connection && client.connection.stream) {
+                    client.connection.stream.destroy();
                 }
             } catch (destroyErr) {
                 console.error('Error destroying connection:', destroyErr);

@@ -22,8 +22,9 @@ describe('MySQL Connection Management Tests', function () {
                 const closePromise = new Promise((resolve) => {
                     const timeout = setTimeout(() => {
                         console.log('Connection end timed out, forcing destroy');
-                        if (db._conn) {
-                            db._conn.destroy();
+                        const client = db.getClient();
+                        if (client) {
+                            client.destroy();
                         }
                         resolve();
                     }, 2000);
@@ -36,8 +37,9 @@ describe('MySQL Connection Management Tests', function () {
                         .catch((err) => {
                             console.error('Error ending connection:', err);
                             clearTimeout(timeout);
-                            if (db._conn) {
-                                db._conn.destroy();
+                            const client = db.getClient();
+                            if (client) {
+                                client.destroy();
                             }
                             resolve();
                         });
@@ -63,11 +65,6 @@ describe('MySQL Connection Management Tests', function () {
                     });
 
                     await closeConnection(connection);
-
-                    setTimeout(() => {
-                        console.log('Forcing process exit to prevent hanging');
-                        process.exit(0);
-                    }, 1000);
                 } catch (err) {
                     console.error('Final cleanup error:', err);
                 }
@@ -141,8 +138,9 @@ describe('MySQL Connection Management Tests', function () {
                 const closePromise = new Promise((resolve) => {
                     const timeout = setTimeout(() => {
                         console.log('Timeout connection end timed out, forcing destroy');
-                        if (timeoutDb._conn) {
-                            timeoutDb._conn.destroy();
+                        const client = timeoutDb.getClient();
+                        if (client) {
+                            client.destroy();
                         }
                         resolve();
                     }, 1000);
@@ -155,8 +153,9 @@ describe('MySQL Connection Management Tests', function () {
                         .catch((err) => {
                             console.error('Error ending timeout connection:', err);
                             clearTimeout(timeout);
-                            if (timeoutDb._conn) {
-                                timeoutDb._conn.destroy();
+                            const client = timeoutDb.getClient();
+                            if (client) {
+                                client.destroy();
                             }
                             resolve();
                         });
@@ -188,8 +187,9 @@ describe('MySQL Connection Management Tests', function () {
                 const closePromise = new Promise((resolve) => {
                     const timeout = setTimeout(() => {
                         console.log('Retry connection end timed out, forcing destroy');
-                        if (retryDb._conn) {
-                            retryDb._conn.destroy();
+                        const client = retryDb.getClient();
+                        if (client) {
+                            client.destroy();
                         }
                         resolve();
                     }, 1000);
@@ -202,8 +202,9 @@ describe('MySQL Connection Management Tests', function () {
                         .catch((err) => {
                             console.error('Error ending retry connection:', err);
                             clearTimeout(timeout);
-                            if (retryDb._conn) {
-                                retryDb._conn.destroy();
+                            const client = retryDb.getClient();
+                            if (client) {
+                                client.destroy();
                             }
                             resolve();
                         });

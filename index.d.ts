@@ -1,6 +1,7 @@
 // Type definitions for serverless-mysql
 
 import * as MySQL from "mysql2";
+import { Readable, ReadableOptions } from "stream";
 
 // https://github.com/microsoft/TypeScript/issues/8335#issuecomment-215194561
 declare namespace serverlessMysql {
@@ -106,6 +107,14 @@ declare namespace serverlessMysql {
     onQueryRetry?: Function;
   };
 
+  export type QueryStream = Readable & {
+    sql?: string;
+  };
+
+  export type QueryPromise<T> = Promise<T> & {
+    stream(options?: ReadableOptions): QueryStream;
+  };
+
   class Transaction {
     query(...args: any[]): this;
     rollback(fn: Function): this;
@@ -115,7 +124,7 @@ declare namespace serverlessMysql {
   export type ServerlessMysql = {
     connect(wait?: number): Promise<void>;
     config(config?: string | MySQL.ConnectionOptions): MySQL.ConnectionOptions;
-    query<T>(...args: any[]): Promise<T>;
+    query<T>(...args: any[]): QueryPromise<T>;
     end(): Promise<void>;
     escape: typeof MySQL.escape;
     escapeId: typeof MySQL.escapeId;
