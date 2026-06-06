@@ -5,7 +5,7 @@
 
 ### A module for managing MySQL connections at *serverless* scale.
 
-Serverless MySQL is a wrapper for Doug Wilson's amazing **[mysql2](https://github.com/mysqljs/mysql2)** Node.js module. Normally, using the `mysql2` module with Node apps would be just fine. However, serverless functions (like AWS Lambda, Google Cloud Functions, and Azure Functions) scale almost infinitely by creating separate instances for each concurrent user. This is a **MAJOR PROBLEM** for RDBS solutions like MySQL, because available connections can be quickly maxed out by competing functions. Not anymore. 😀
+Serverless MySQL is a wrapper for Doug Wilson's amazing **[mysql2](https://github.com/sidorares/node-mysql2)** Node.js module. Normally, using the `mysql2` module with Node apps would be just fine. However, serverless functions (like AWS Lambda, Google Cloud Functions, and Azure Functions) scale almost infinitely by creating separate instances for each concurrent user. This is a **MAJOR PROBLEM** for RDBS solutions like MySQL, because available connections can be quickly maxed out by competing functions. Not anymore. 😀
 
 Serverless MySQL adds a connection management component to the `mysql2` module that is designed specifically for use with serverless applications. This module constantly monitors the number of connections being utilized, and then based on your settings, manages those connections to allow thousands of concurrent executions to share them. It will clean up zombies, enforce connection limits per user, and retry connections using trusted backoff algorithms.
 
