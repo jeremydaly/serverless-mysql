@@ -1,6 +1,7 @@
 'use strict'
 
 const NodeURL = require('url')
+const { PassThrough } = require('stream')
 
 /**
  * This module manages MySQL connections in serverless applications.
@@ -225,21 +226,154 @@ module.exports = (params) => {
   /********************************************************************/
 
   // Main query function
-  const query = async function (...args) {
-    // Establish connection
-    await connect()
+  const query = function (...args) {
+    let queryObj = null
+    let queryUsesCallback = false // true when query started via the callback path (non-streaming); used to guard against calling .stream() too late
+    let streamRequested = false
+    let streamOptions = {}
+    let streamProxy = null
+    let streamAttached = false
 
     // Track query retries
     let queryRetries = 0
 
+    const normalizeStreamOptions = (options) => {
+      const opts = Object.assign({}, options)
+      opts.objectMode = true
+      return opts
+    }
+
+    const handleStreamError = (err) => {
+      if (returnFinalSqlQuery && queryObj && queryObj.sql && err && !err.sql) {
+        err.sql = queryObj.sql
+      }
+
+      if (err && err.code === 'PROTOCOL_SEQUENCE_TIMEOUT') {
+        if (client) {
+          client.destroy() // destroy connection on timeout
+        }
+        resetClient() // reset the client
+      } else if (
+        err && (/^PROTOCOL_ENQUEUE_AFTER_/.test(err.code)
+          || err.code === 'PROTOCOL_CONNECTION_LOST'
+          || err.code === 'EPIPE'
+          || err.code === 'ECONNRESET')
+      ) {
+        resetClient() // reset the client
+      }
+    }
+
+    const attachStreamToProxy = () => {
+      if (!streamRequested || !queryObj || streamAttached || !streamProxy) {
+        return
+      }
+
+      const options = normalizeStreamOptions(streamOptions)
+      const queryStream = queryObj.stream(options)
+      streamAttached = true
+
+      if (returnFinalSqlQuery && queryObj.sql) {
+        Object.defineProperty(queryStream, 'sql', {
+          enumerable: false,
+          value: queryObj.sql
+        })
+        Object.defineProperty(streamProxy, 'sql', {
+          enumerable: false,
+          value: queryObj.sql
+        })
+      }
+
+      queryStream.on('error', (err) => {
+        queryStream.unpipe(streamProxy)
+        streamProxy.destroy(err)
+      })
+      queryStream.on('fields', (fields) => streamProxy.emit('fields', fields))
+      queryStream.on('result', (row, resultSetIndex) => streamProxy.emit('result', row, resultSetIndex))
+
+      queryStream.pipe(streamProxy)
+    }
+
     // Function to execute the query with retry logic
     const executeQuery = async () => {
+      try {
+        await connect()
+      } catch (err) {
+        if (streamProxy) {
+          process.nextTick(() => streamProxy.destroy(err))
+        }
+        throw err
+      }
+
       return new PromiseLibrary((resolve, reject) => {
         if (client !== null) {
           // If no args are passed in a transaction, ignore query
           if (this && this.rollback && args.length === 0) { return resolve([]) }
 
-          const queryObj = client.query(...args, async (err, results) => {
+          // streamRequested is safe to read here because `await connect()` above
+          // always suspends executeQuery before this point, returning control to
+          // the caller. Any .stream() call made synchronously on the returned
+          // promise will have set streamRequested = true before this branch runs.
+          if (streamRequested) {
+            queryUsesCallback = false
+            queryObj = client.query(...args)
+            attachStreamToProxy()
+
+            let settled = false
+
+            const cleanup = () => {
+              queryObj.removeListener('error', onError)
+              queryObj.removeListener('end', onEnd)
+            }
+
+            const onEnd = () => {
+              if (settled) { return }
+              settled = true
+              cleanup()
+              const results = []
+
+              if (returnFinalSqlQuery && queryObj.sql) {
+                Object.defineProperty(results, 'sql', {
+                  enumerable: false,
+                  value: queryObj.sql
+                })
+              }
+
+              resolve(results)
+            }
+
+            const onError = async (err) => {
+              if (settled) { return }
+              settled = true
+              cleanup()
+
+              if (returnFinalSqlQuery && queryObj.sql && err && !err.sql) {
+                err.sql = queryObj.sql
+              }
+
+              handleStreamError(err)
+
+              // Stream errors are not retried — rows may already have been emitted,
+              // so transparently restarting the stream would produce duplicate data.
+              if (this && this.rollback) {
+                await query('ROLLBACK')
+                this.rollback(err)
+              }
+
+              reject(err)
+            }
+
+            queryObj.on('error', onError)
+            queryObj.on('end', onEnd)
+
+            return
+          }
+
+          // The non-streaming path uses mysql2's callback API internally.
+          // Connection-reset handling here mirrors handleStreamError but also
+          // includes connection-lost retry (resolve(query(...args))) which is
+          // safe here because no rows have been emitted yet.
+          queryUsesCallback = true
+          queryObj = client.query(...args, async (err, results) => {
             if (returnFinalSqlQuery && queryObj.sql && err) {
               err.sql = queryObj.sql
             }
@@ -298,7 +432,45 @@ module.exports = (params) => {
     }
 
     // Execute the query with retry logic
-    return executeQuery()
+    const promise = executeQuery()
+
+    promise.stream = (options = {}) => {
+      streamRequested = true
+      streamOptions = Object.keys(options).length ? options : streamOptions
+
+      if (queryObj) {
+        if (queryUsesCallback) {
+          const errorStream = new PassThrough({ objectMode: true })
+          process.nextTick(() => {
+            errorStream.emit('error', new Error('Stream is not available for this query'))
+          })
+          return errorStream
+        }
+
+        const queryStream = queryObj.stream(normalizeStreamOptions(streamOptions))
+
+        if (returnFinalSqlQuery && queryObj.sql) {
+          Object.defineProperty(queryStream, 'sql', {
+            enumerable: false,
+            value: queryObj.sql
+          })
+        }
+
+        queryStream.on('error', handleStreamError)
+        return queryStream
+      }
+
+      if (!streamProxy) {
+        streamProxy = new PassThrough(normalizeStreamOptions(streamOptions))
+      }
+
+      // Prevent unhandled rejections when using streams without awaiting the promise.
+      promise.catch(() => { })
+
+      return streamProxy
+    }
+
+    return promise
   } // end query
 
   // Change user method
