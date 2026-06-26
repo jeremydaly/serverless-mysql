@@ -398,7 +398,7 @@ let results = await mysql.transaction()
   .commit() // execute the queries
 ```
 
-If `someCondition` is true, the error will be thrown, the transaction will be rolled back, and no queries will be executed.
+If `someCondition` is true, the error will be thrown, the transaction will be rolled back, and no changes will be committed.
 
 **NOTE:** Transaction support is designed for InnoDB tables (default). Other table types may not behave as expected.
 

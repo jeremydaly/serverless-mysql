@@ -446,6 +446,11 @@ module.exports = (params) => {
 
     let results = [] // keep track of results
     let transactionStarted = false
+    let rollbackHandled = false
+    const rollbackWrapper = (err) => {
+      rollbackHandled = true
+      rollback(err)
+    }
 
     try {
       // Start a transaction
@@ -454,26 +459,18 @@ module.exports = (params) => {
 
       // Loop through queries
       for (let i = 0; i < queries.length; i++) {
-        try {
-          // Get the query arguments by calling the function
-          const queryArgs = queries[i](results[results.length - 1], results)
+        // Get the query arguments by calling the function
+        const queryArgs = queries[i](results[results.length - 1], results)
 
-          // If queryArgs is null or undefined, skip this query
-          if (queryArgs === null || queryArgs === undefined) {
-            continue
-          }
-
-          // Execute the queries, pass the rollback as context
-          let result = await query.apply({ rollback }, queryArgs)
-          // Add the result to the main results accumulator
-          results.push(result)
-        } catch (err) {
-          // If there's a JavaScript error in the query function, roll back and rethrow
-          if (transactionStarted) {
-            await query('ROLLBACK')
-          }
-          throw err
+        // If queryArgs is null or undefined, skip this query
+        if (queryArgs === null || queryArgs === undefined) {
+          continue
         }
+
+        // Execute the queries, pass the rollback as context
+        let result = await query.apply({ rollback: rollbackWrapper }, queryArgs)
+        // Add the result to the main results accumulator
+        results.push(result)
       }
 
       // Commit our transaction
@@ -483,7 +480,7 @@ module.exports = (params) => {
       return results
     } catch (err) {
       // If there's an error during the transaction, roll back if needed
-      if (transactionStarted) {
+      if (transactionStarted && !rollbackHandled) {
         try {
           await query('ROLLBACK')
         } catch (rollbackErr) {
@@ -493,7 +490,7 @@ module.exports = (params) => {
       }
 
       // Call the rollback handler if provided
-      if (typeof rollback === 'function') {
+      if (!rollbackHandled && typeof rollback === 'function') {
         rollback(err)
       }
 
