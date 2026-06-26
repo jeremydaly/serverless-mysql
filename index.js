@@ -449,7 +449,14 @@ module.exports = (params) => {
     let rollbackHandled = false
     const rollbackWrapper = (err) => {
       rollbackHandled = true
-      rollback(err)
+      try {
+        const result = rollback(err)
+        if (result && typeof result.catch === 'function') {
+          result.catch(handlerErr => onError(handlerErr))
+        }
+      } catch (handlerErr) {
+        onError(handlerErr)
+      }
     }
 
     try {
@@ -491,7 +498,7 @@ module.exports = (params) => {
 
       // Call the rollback handler if provided
       if (!rollbackHandled && typeof rollback === 'function') {
-        rollback(err)
+        rollbackWrapper(err)
       }
 
       // Rethrow the original error
