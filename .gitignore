@@ -17,3 +17,7 @@ coverage
 # IDE settings
 .idea
 .vscode
+
+# Benchmark build artifacts (results.json / results.md ARE committed)
+benchmark/lambda/function.zip
+benchmark/lambda/package-lock.json

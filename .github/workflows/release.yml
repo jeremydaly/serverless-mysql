@@ -1,0 +1,45 @@
+name: "Release Benchmarks"
+
+# On every tagged release (e.g. v2.2.0), run the benchmark suite and commit the
+# refreshed results back to master so the README always reflects the latest numbers.
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run benchmark and update README
+        run: npm run benchmark:readme
+
+      - name: Commit refreshed benchmark results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- README.md benchmark/results.md benchmark/results.json; then
+            echo "No benchmark changes to commit."
+            exit 0
+          fi
+          git add README.md benchmark/results.md benchmark/results.json
+          git commit -m "chore(benchmark): refresh results for ${GITHUB_REF_NAME} [skip ci]"
+          git push origin HEAD:master

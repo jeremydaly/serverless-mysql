@@ -1,0 +1,141 @@
+{
+  "meta": {
+    "generatedAt": "2026-06-27T16:37:55.159Z",
+    "durationMsPerLevel": 8000,
+    "querySleepSeconds": 0.02,
+    "maxConnections": 30,
+    "concurrencyLevels": [
+      5,
+      10,
+      20,
+      30
+    ],
+    "node": "v20.19.5"
+  },
+  "rows": [
+    {
+      "driver": "serverless-mysql (managed)",
+      "mode": "managed",
+      "concurrency": 5,
+      "total": 1015,
+      "success": 1015,
+      "failed": 0,
+      "successRate": 100,
+      "failuresByCode": {},
+      "throughput": 126.6,
+      "p50": 22,
+      "p95": 23,
+      "p99": 24,
+      "peakConnections": 6
+    },
+    {
+      "driver": "raw mysql2 (per-call)",
+      "mode": "raw",
+      "concurrency": 5,
+      "total": 1010,
+      "success": 1010,
+      "failed": 0,
+      "successRate": 100,
+      "failuresByCode": {},
+      "throughput": 125.9,
+      "p50": 23,
+      "p95": 25,
+      "p99": 30,
+      "peakConnections": 11
+    },
+    {
+      "driver": "serverless-mysql (managed)",
+      "mode": "managed",
+      "concurrency": 10,
+      "total": 1912,
+      "success": 1912,
+      "failed": 0,
+      "successRate": 100,
+      "failuresByCode": {},
+      "throughput": 238.2,
+      "p50": 22,
+      "p95": 22,
+      "p99": 24,
+      "peakConnections": 11
+    },
+    {
+      "driver": "raw mysql2 (per-call)",
+      "mode": "raw",
+      "concurrency": 10,
+      "total": 1877,
+      "success": 1877,
+      "failed": 0,
+      "successRate": 100,
+      "failuresByCode": {},
+      "throughput": 233.9,
+      "p50": 22,
+      "p95": 25,
+      "p99": 30,
+      "peakConnections": 21
+    },
+    {
+      "driver": "serverless-mysql (managed)",
+      "mode": "managed",
+      "concurrency": 20,
+      "total": 1370,
+      "success": 1370,
+      "failed": 0,
+      "successRate": 100,
+      "failuresByCode": {},
+      "throughput": 170.5,
+      "p50": 22,
+      "p95": 24,
+      "p99": 35,
+      "peakConnections": 21
+    },
+    {
+      "driver": "raw mysql2 (per-call)",
+      "mode": "raw",
+      "concurrency": 20,
+      "total": 1268,
+      "success": 1251,
+      "failed": 17,
+      "successRate": 98.7,
+      "failuresByCode": {
+        "ER_CON_COUNT_ERROR": 17
+      },
+      "throughput": 155.8,
+      "p50": 23,
+      "p95": 28,
+      "p99": 73,
+      "peakConnections": 31
+    },
+    {
+      "driver": "serverless-mysql (managed)",
+      "mode": "managed",
+      "concurrency": 30,
+      "total": 1265,
+      "success": 1265,
+      "failed": 0,
+      "successRate": 100,
+      "failuresByCode": {},
+      "throughput": 157.3,
+      "p50": 22,
+      "p95": 26,
+      "p99": 40,
+      "peakConnections": 27
+    },
+    {
+      "driver": "raw mysql2 (per-call)",
+      "mode": "raw",
+      "concurrency": 30,
+      "total": 1134,
+      "success": 1105,
+      "failed": 29,
+      "successRate": 97.4,
+      "failuresByCode": {
+        "ER_CON_COUNT_ERROR": 29
+      },
+      "throughput": 129.2,
+      "p50": 23,
+      "p95": 29,
+      "p99": 54,
+      "peakConnections": 31
+    }
+  ]
+}

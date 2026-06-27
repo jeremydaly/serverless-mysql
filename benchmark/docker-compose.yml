@@ -1,0 +1,52 @@
+# Benchmark stack: a real Lambda fleet (LocalStack) against a connection-constrained MySQL.
+# Both services share an explicitly-named network so the Lambda containers LocalStack
+# spawns can reach the database by hostname (benchmark-mysql).
+services:
+  localstack:
+    image: localstack/localstack:3
+    container_name: benchmark-localstack
+    ports:
+      - "4566:4566"
+    environment:
+      SERVICES: lambda
+      # Lambda containers must join the same network as MySQL to resolve `benchmark-mysql`.
+      LAMBDA_DOCKER_NETWORK: serverless-mysql-benchmark-net
+      LAMBDA_RUNTIME_ENVIRONMENT_TIMEOUT: "60"
+      DEBUG: "0"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    networks:
+      - benchmark-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:4566/_localstack/health | grep -q '\"lambda\": \"available\"'"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  mysql:
+    image: mysql:lts
+    container_name: benchmark-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: benchmark
+      MYSQL_ROOT_HOST: "%"
+      TZ: UTC
+    ports:
+      # Host-side poller connects on 3307 to avoid clashing with the test DB on 3306.
+      - "3307:3306"
+    # A deliberately low cap so fleet-level connection contention is observable.
+    command: >
+      --max_connections=30
+      --wait_timeout=28800
+    networks:
+      - benchmark-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-ppassword"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+networks:
+  benchmark-net:
+    # Fixed name so LAMBDA_DOCKER_NETWORK above matches regardless of compose project dir.
+    name: serverless-mysql-benchmark-net
