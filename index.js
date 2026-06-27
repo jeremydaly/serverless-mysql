@@ -460,48 +460,34 @@ module.exports = (params) => {
     }
 
     try {
-      // Start a transaction
       await query('START TRANSACTION')
       transactionStarted = true
 
-      // Loop through queries
       for (let i = 0; i < queries.length; i++) {
-        // Get the query arguments by calling the function
-        const queryArgs = queries[i](results[results.length - 1], results)
-
-        // If queryArgs is null or undefined, skip this query
-        if (queryArgs === null || queryArgs === undefined) {
-          continue
-        }
-
-        // Execute the queries, pass the rollback as context
-        let result = await query.apply({ rollback: rollbackWrapper }, queryArgs)
-        // Add the result to the main results accumulator
+        // A null/undefined/empty return resolves to [] via the args.length === 0
+        // guard in query(), keeping results aligned with skipped queries.
+        let result = await query.apply({ rollback: rollbackWrapper }, queries[i](results[results.length - 1], results))
         results.push(result)
       }
 
-      // Commit our transaction
       await query('COMMIT')
 
-      // Return the results
       return results
     } catch (err) {
-      // If there's an error during the transaction, roll back if needed
+      // The query() error path rolls back itself (setting rollbackHandled); only
+      // roll back here for errors thrown outside it, e.g. from a query function.
       if (transactionStarted && !rollbackHandled) {
         try {
           await query('ROLLBACK')
         } catch (rollbackErr) {
-          // If rollback fails, log it but throw the original error
           onError(rollbackErr)
         }
       }
 
-      // Call the rollback handler if provided
       if (!rollbackHandled && typeof rollback === 'function') {
         rollbackWrapper(err)
       }
 
-      // Rethrow the original error
       throw err
     }
   }

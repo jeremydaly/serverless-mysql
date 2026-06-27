@@ -80,4 +80,4 @@ describe('Transaction JavaScript Error Tests', function () {
         );
         expect(firstTransactionRecords[0].count).to.equal(0, 'First transaction should not have been executed');
     });
-}); 
+});
