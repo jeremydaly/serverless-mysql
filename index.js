@@ -445,23 +445,51 @@ module.exports = (params) => {
   const commit = async (queries, rollback) => {
 
     let results = [] // keep track of results
-
-    // Start a transaction
-    await query('START TRANSACTION')
-
-    // Loop through queries
-    for (let i = 0; i < queries.length; i++) {
-      // Execute the queries, pass the rollback as context
-      let result = await query.apply({ rollback }, queries[i](results[results.length - 1], results))
-      // Add the result to the main results accumulator
-      results.push(result)
+    let transactionStarted = false
+    let rollbackHandled = false
+    const rollbackWrapper = (err) => {
+      rollbackHandled = true
+      try {
+        const result = rollback(err)
+        if (result && typeof result.catch === 'function') {
+          result.catch(handlerErr => onError(handlerErr))
+        }
+      } catch (handlerErr) {
+        onError(handlerErr)
+      }
     }
 
-    // Commit our transaction
-    await query('COMMIT')
+    try {
+      await query('START TRANSACTION')
+      transactionStarted = true
 
-    // Return the results
-    return results
+      for (let i = 0; i < queries.length; i++) {
+        // A null/undefined/empty return resolves to [] via the args.length === 0
+        // guard in query(), keeping results aligned with skipped queries.
+        let result = await query.apply({ rollback: rollbackWrapper }, queries[i](results[results.length - 1], results))
+        results.push(result)
+      }
+
+      await query('COMMIT')
+
+      return results
+    } catch (err) {
+      // The query() error path rolls back itself (setting rollbackHandled); only
+      // roll back here for errors thrown outside it, e.g. from a query function.
+      if (transactionStarted && !rollbackHandled) {
+        try {
+          await query('ROLLBACK')
+        } catch (rollbackErr) {
+          onError(rollbackErr)
+        }
+      }
+
+      if (!rollbackHandled && typeof rollback === 'function') {
+        rollbackWrapper(err)
+      }
+
+      throw err
+    }
   }
 
 
