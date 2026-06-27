@@ -18,6 +18,8 @@
     "test-cov": "TZ=UTC nyc --reporter=html mocha --check-leaks --recursive test/{unit,integration}/*.spec.js",
     "test-cov:debug": "TZ=UTC NODE_DEBUG=mysql,net,stream nyc --reporter=html mocha --check-leaks --recursive test/{unit,integration}/*.spec.js",
     "lint": "eslint .",
+    "benchmark": "./benchmark/run.sh",
+    "benchmark:readme": "./benchmark/run.sh && node benchmark/update-readme.js",
     "prepublishOnly": "npm run lint && npm run test:docker"
   },
   "repository": {
@@ -47,6 +49,7 @@
   },
   "homepage": "https://github.com/jeremydaly/serverless-mysql#readme",
   "devDependencies": {
+    "@aws-sdk/client-lambda": "^3.700.0",
     "chai": "^4.2.0",
     "coveralls": "^3.0.11",
     "eslint": "^8.57.1",
